@@ -17,7 +17,7 @@ const Home = () => {
 
       <header className="hero-section">
         <h1 className="title">
-          Welcome to <span className="brand-name">EduConnect 🚀</span>
+          Welcome to <span className="brand-name">CollegeROI 🚀</span>
         </h1>
         <p className="tagline">
           Empowering Students, Reassuring Parents & Guardians.
