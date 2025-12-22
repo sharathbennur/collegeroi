@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './Home';
+import Calculator from './Calculator';
 import './App.css'
 import './Home.css'
 
@@ -8,8 +9,7 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-        {/* Placeholder for the dashboard route */}
-        <Route path="/dashboard" element={<div>Dashboard Coming Soon!</div>} />
+        <Route path="/calculator" element={<Calculator />} />
       </Routes>
     </Router>
   )

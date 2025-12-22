@@ -6,7 +6,7 @@ const Home = () => {
 
   const handleEnter = () => {
     // Navigate to your main dashboard or login route
-    navigate('/dashboard');
+    navigate('/calculator');
   };
 
   return (
