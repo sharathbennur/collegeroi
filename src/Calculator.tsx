@@ -10,14 +10,35 @@ const Calculator = () => {
     loanInterest: '',
     salary: ''
   });
+  const [error, setError] = useState('');
+  const [invalidFields, setInvalidFields] = useState<string[]>([]);
 
   const handleChange = (e: FormEvent<HTMLInputElement>) => {
     const { name, value } = e.currentTarget;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (error) setError('');
+    if (invalidFields.includes(name)) {
+      setInvalidFields(prev => prev.filter(field => field !== name));
+    }
   };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const { collegeName, tuition, familyContribution, loanInterest, salary } = formData;
+    const missingFields = [];
+    if (!collegeName) missingFields.push('collegeName');
+    if (!tuition) missingFields.push('tuition');
+    if (!familyContribution) missingFields.push('familyContribution');
+    if (!loanInterest) missingFields.push('loanInterest');
+    if (!salary) missingFields.push('salary');
+
+    if (missingFields.length > 0) {
+      setError('Please fill in all fields with valid data');
+      setInvalidFields(missingFields);
+      return;
+    }
+
     console.log('Form submitted:', formData);
   };
 
@@ -40,6 +61,7 @@ const Calculator = () => {
                 placeholder="e.g. Harvard University"
                 value={formData.collegeName}
                 onChange={handleChange}
+                className={invalidFields.includes('collegeName') ? 'error-input' : ''}
               />
             </div>
             
@@ -52,6 +74,7 @@ const Calculator = () => {
                 placeholder="e.g. 80,000"
                 value={formData.tuition}
                 onChange={handleChange}
+                className={invalidFields.includes('tuition') ? 'error-input' : ''}
               />
             </div>
 
@@ -64,6 +87,7 @@ const Calculator = () => {
                 placeholder="40,000"
                 value={formData.familyContribution}
                 onChange={handleChange}
+                className={invalidFields.includes('familyContribution') ? 'error-input' : ''}
               />
             </div>
 
@@ -77,6 +101,7 @@ const Calculator = () => {
                 placeholder="e.g. 5.5"
                 value={formData.loanInterest}
                 onChange={handleChange}
+                className={invalidFields.includes('loanInterest') ? 'error-input' : ''}
               />
             </div>
 
@@ -89,8 +114,10 @@ const Calculator = () => {
                 placeholder="e.g. 60000"
                 value={formData.salary}
                 onChange={handleChange}
+                className={invalidFields.includes('salary') ? 'error-input' : ''}
               />
             </div>
+            {error && <div className="error-message">{error}</div>}
             <button type="submit" className="calculate-button">
               Calculate Payment Table
             </button>
