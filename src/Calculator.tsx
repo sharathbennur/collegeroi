@@ -3,6 +3,14 @@ import { Link } from 'react-router-dom';
 import './Calculator.css';
 import { colleges } from './assets/colleges.ts';
 
+interface PaymentScheduleRow {
+  month: number;
+  payment: number;
+  principal: number;
+  interest: number;
+  balance: number;
+}
+
 const Calculator = () => {
   const [formData, setFormData] = useState({
     collegeName: '',
@@ -27,6 +35,22 @@ const Calculator = () => {
     roomBoard4: ''
   });
   const [inflationRate, setInflationRate] = useState('');
+  const [sections, setSections] = useState({
+    costs: true,
+    loans: false,
+    payments: false
+  });
+  const [paymentSchedule, setPaymentSchedule] = useState<PaymentScheduleRow[]>([]);
+  const [showSchedule, setShowSchedule] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(true);
+
+  const toggleSection = (section: keyof typeof sections) => {
+    setSections(prev => ({
+      costs: section === 'costs' ? !prev.costs : false,
+      loans: section === 'loans' ? !prev.loans : false,
+      payments: section === 'payments' ? !prev.payments : false
+    }));
+  };
 
   const handleChange = (e: FormEvent<HTMLInputElement>) => {
     const { name, value } = e.currentTarget;
@@ -145,6 +169,44 @@ const Calculator = () => {
     console.log('Form submitted:', formData);
   };
 
+  const handleShowSchedule = () => {
+    const principal = calculateLoanAmount();
+    const annualInterest = parseFloat(formData.loanInterest) || 0;
+    const years = parseFloat(formData.loanTerm) || 0;
+
+    if (principal <= 0 || years <= 0) {
+      setPaymentSchedule([]);
+      setShowSchedule(true);
+      setScheduleOpen(true);
+      return;
+    }
+
+    const monthlyRate = annualInterest / 100 / 12;
+    const numberOfPayments = years * 12;
+    const monthlyPayment = calculateMonthlyPayment();
+
+    const schedule: PaymentScheduleRow[] = [];
+    let balance = principal;
+
+    for (let i = 1; i <= numberOfPayments; i++) {
+      const interest = balance * monthlyRate;
+      const principalPayment = monthlyPayment - interest;
+      balance = Math.max(0, balance - principalPayment);
+
+      schedule.push({
+        month: i,
+        payment: monthlyPayment,
+        principal: principalPayment,
+        interest: interest,
+        balance: balance
+      });
+    }
+
+    setPaymentSchedule(schedule);
+    setShowSchedule(true);
+    setScheduleOpen(true);
+  };
+
   const calculateFourYearCost = () => {
     return parseFloat(formData.tuition) || 0;
   };
@@ -222,96 +284,137 @@ const Calculator = () => {
             </button>
           </div>
           <form className="input-form" onSubmit={handleSubmit}>
-            <div className="input-group">
-              <label htmlFor="collegeName">College Name</label>
-              <input
-                type="text"
-                id="collegeName"
-                name="collegeName"
-                placeholder="e.g. Harvard University"
-                value={formData.collegeName}
-                onChange={handleChange}
-                className={invalidFields.includes('collegeName') ? 'error-input' : ''}
-              />
-            </div>
-            
-            <div className="input-group">
-              <label htmlFor="tuition">4-Year Tuition ($)</label>
-              <input
-                type="number"
-                id="tuition"
-                name="tuition"
-                placeholder="Click to enter tuition breakdown"
-                value={formData.tuition}
-                readOnly
-                onClick={() => setShowTuitionModal(true)}
-                className={invalidFields.includes('tuition') ? 'error-input' : ''}
-              />
+            <div className="collapsible-section">
+              <button type="button" className={`section-toggle ${!sections.costs ? 'closed' : ''}`} onClick={() => toggleSection('costs')}>
+                <span>Costs</span>
+                <span>{sections.costs ? '−' : '+'}</span>
+              </button>
+              {sections.costs && (
+                <div className="section-content">
+                  <div className="input-group">
+                    <label htmlFor="collegeName">College Name</label>
+                    <input
+                      type="text"
+                      id="collegeName"
+                      name="collegeName"
+                      placeholder="e.g. Harvard University"
+                      value={formData.collegeName}
+                      onChange={handleChange}
+                      className={invalidFields.includes('collegeName') ? 'error-input' : ''}
+                    />
+                  </div>
+                  
+                  <div className="input-group">
+                    <label htmlFor="tuition">4-Year Tuition ($)</label>
+                    <input
+                      type="number"
+                      id="tuition"
+                      name="tuition"
+                      placeholder="Click to enter tuition breakdown"
+                      value={formData.tuition}
+                      readOnly
+                      onClick={() => setShowTuitionModal(true)}
+                      className={invalidFields.includes('tuition') ? 'error-input' : ''}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label htmlFor="familyContribution">Annual Family Contribution ($)</label>
+                    <input
+                      type="number"
+                      id="familyContribution"
+                      name="familyContribution"
+                      placeholder="e.g. 40,000"
+                      value={formData.familyContribution}
+                      onChange={handleChange}
+                      className={invalidFields.includes('familyContribution') ? 'error-input' : ''}
+                    />
+                  </div>
+                  <button type="button" className="secondary-button" style={{ width: '100%' }} onClick={() => toggleSection('loans')}>
+                    Next
+                  </button>
+                </div>
+              )}
             </div>
 
-            <div className="input-group">
-              <label htmlFor="familyContribution">Annual Family Contribution ($)</label>
-              <input
-                type="number"
-                id="familyContribution"
-                name="familyContribution"
-                placeholder="40,000"
-                value={formData.familyContribution}
-                onChange={handleChange}
-                className={invalidFields.includes('familyContribution') ? 'error-input' : ''}
-              />
+            <div className="collapsible-section">
+              <button type="button" className={`section-toggle ${!sections.loans ? 'closed' : ''}`} onClick={() => toggleSection('loans')}>
+                <span>Loans</span>
+                <span>{sections.loans ? '−' : '+'}</span>
+              </button>
+              {sections.loans && (
+                <div className="section-content">
+                  <div className="input-row">
+                    <div className="input-group">
+                      <label htmlFor="loanInterest">Loan Interest (%)</label>
+                      <input
+                        type="number"
+                        id="loanInterest"
+                        name="loanInterest"
+                        step="0.1"
+                        placeholder="e.g. 5.5"
+                        value={formData.loanInterest}
+                        onChange={handleChange}
+                        className={invalidFields.includes('loanInterest') ? 'error-input' : ''}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label htmlFor="loanTerm">Loan Term (yrs)</label>
+                      <input
+                        type="number"
+                        id="loanTerm"
+                        name="loanTerm"
+                        placeholder="e.g. 10"
+                        value={formData.loanTerm}
+                        onChange={handleChange}
+                        className={invalidFields.includes('loanTerm') ? 'error-input' : ''}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button type="button" className="secondary-button" style={{ flex: 1 }} onClick={handleShowSchedule}>
+                      Show Payment Schedule
+                    </button>
+                    <button type="button" className="secondary-button" style={{ flex: 1 }} onClick={() => toggleSection('payments')}>
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="input-row">
-              <div className="input-group">
-                <label htmlFor="loanInterest">Loan Interest (%)</label>
-                <input
-                  type="number"
-                  id="loanInterest"
-                  name="loanInterest"
-                  step="0.1"
-                  placeholder="e.g. 5.5"
-                  value={formData.loanInterest}
-                  onChange={handleChange}
-                  className={invalidFields.includes('loanInterest') ? 'error-input' : ''}
-                />
-              </div>
-              <div className="input-group">
-                <label htmlFor="loanTerm">Loan Term (yrs)</label>
-                <input
-                  type="number"
-                  id="loanTerm"
-                  name="loanTerm"
-                  placeholder="e.g. 10"
-                  value={formData.loanTerm}
-                  onChange={handleChange}
-                  className={invalidFields.includes('loanTerm') ? 'error-input' : ''}
-                />
-              </div>
+            <div className="collapsible-section">
+              <button type="button" className={`section-toggle ${!sections.payments ? 'closed' : ''}`} onClick={() => toggleSection('payments')}>
+                <span>Payments</span>
+                <span>{sections.payments ? '−' : '+'}</span>
+              </button>
+              {sections.payments && (
+                <div className="section-content">
+                  <div className="input-group">
+                    <label htmlFor="salary">Expected Starting Salary ($)</label>
+                    <input
+                      type="number"
+                      id="salary"
+                      name="salary"
+                      placeholder="e.g. 60000"
+                      value={formData.salary}
+                      onChange={handleChange}
+                      className={invalidFields.includes('salary') ? 'error-input' : ''}
+                    />
+                  </div>
+                  {error && <div className="error-message">{error}</div>}
+                  <button type="submit" className="calculate-button">
+                    Calculate Payment Table
+                  </button>
+                </div>
+              )}
             </div>
-
-            <div className="input-group">
-              <label htmlFor="salary">Expected Starting Salary ($)</label>
-              <input
-                type="number"
-                id="salary"
-                name="salary"
-                placeholder="e.g. 60000"
-                value={formData.salary}
-                onChange={handleChange}
-                className={invalidFields.includes('salary') ? 'error-input' : ''}
-              />
-            </div>
-            {error && <div className="error-message">{error}</div>}
-            <button type="submit" className="calculate-button">
-              Calculate Payment Table
-            </button>
           </form>
         </div>
         <div className="column center-col">
           <h3>Costs & Interest</h3>
           <div className="result-card">
-            <h4 style={{ margin: 0, color: '#334155' }}>Summary</h4>
+            <h4 style={{ margin: 0, color: '#334155' }}>Cost Summary</h4>
             <div className="result-item">
               <h4>4-Year Cost</h4>
               <div className="value">{formatCurrency(calculateFourYearCost())}</div>
@@ -320,6 +423,13 @@ const Calculator = () => {
               <h4>4-Year Family Contribution</h4>
               <div className="value">{formatCurrency(calculateFourYearFamilyContribution())}</div>
             </div>
+            <div className="result-item">
+              <h4>Total Cost of College</h4>
+              <div className="value">{formatCurrency(calculateTotalCostOfCollege())}</div>
+            </div>
+          </div>
+          <div className="result-card">
+            <h4 style={{ margin: 0, color: '#334155' }}>Loan Details</h4>
             <div className="result-item">
               <h4>Loan Amount</h4>
               <div className="value">{formatCurrency(calculateLoanAmount())}</div>
@@ -332,11 +442,55 @@ const Calculator = () => {
               <h4>Total Interest Paid</h4>
               <div className="value">{formatCurrency(calculateTotalInterest())}</div>
             </div>
-            <div className="result-item">
-              <h4>Total Cost of College</h4>
-              <div className="value">{formatCurrency(calculateTotalCostOfCollege())}</div>
-            </div>
           </div>
+
+          {showSchedule && (
+            <div className="result-card" style={{ padding: 0, overflow: 'hidden' }}>
+              <button 
+                type="button" 
+                className={`section-toggle ${!scheduleOpen ? 'closed' : ''}`} 
+                onClick={() => setScheduleOpen(!scheduleOpen)}
+                style={{ borderRadius: 0, borderTop: 'none', borderLeft: 'none', borderRight: 'none' }}
+              >
+                <span>Payment Schedule</span>
+                <span>{scheduleOpen ? '−' : '+'}</span>
+              </button>
+              {scheduleOpen && (
+                <div className="schedule-container">
+                  <table className="schedule-table">
+                    <thead>
+                      <tr>
+                        <th>Month</th>
+                        <th>Payment</th>
+                        <th>Principal</th>
+                        <th>Interest</th>
+                        <th>Balance</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paymentSchedule.length > 0 ? (
+                        paymentSchedule.map((row) => (
+                          <tr key={row.month}>
+                            <td>{row.month}</td>
+                            <td>{formatCurrency(row.payment)}</td>
+                            <td>{formatCurrency(row.principal)}</td>
+                            <td>{formatCurrency(row.interest)}</td>
+                            <td>{formatCurrency(row.balance)}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={5} style={{ textAlign: 'center', padding: '1rem' }}>
+                            No loan data available. Please check your inputs.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <div className="column right-col">
           <h3>Chat</h3>
@@ -441,10 +595,9 @@ const Calculator = () => {
       {showCollegeModal && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>Select a College</h3>
+            <h3>Select a College from the Top 20 to get started</h3>
             <div className="input-group">
-              <label htmlFor="collegeSelectModal">Top 20 Colleges</label>
-              <select id="collegeSelectModal" onChange={(e) => { handleCollegeSelect(e); setShowCollegeModal(false); }} defaultValue="">
+              <select id="collegeSelectModal" aria-label="Top 20 Colleges" onChange={(e) => { handleCollegeSelect(e); setShowCollegeModal(false); }} defaultValue="">
                 <option value="" disabled>Select a college...</option>
                 {colleges.map(college => (
                   <option key={college.rank} value={college.name}>{college.name}</option>
