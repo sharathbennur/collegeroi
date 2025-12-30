@@ -1140,10 +1140,32 @@ const Calculator = () => {
               </div>
               
               <div className="result-card" style={{ marginTop: '1rem', background: '#f8fafc' }}>
-                <div className="result-item">
+                <div className="result-item" style={{ borderBottom: 'none', paddingBottom: '0.5rem' }}>
                   <h4>Total Monthly Tax</h4>
                   <div className="value" style={{ fontSize: '1.1rem', color: '#ef4444' }}>
                     {formatCurrency(getMonthlyTax())}
+                  </div>
+                </div>
+                <div style={{ padding: '0 0 1rem 0', borderBottom: '1px solid #e2e8f0', marginBottom: '1rem', fontSize: '0.85rem', color: '#64748b', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Federal ({taxRates.federal}%)</span>
+                    <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.federal) || 0) / 100)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>State ({taxRates.state}%)</span>
+                    <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.state) || 0) / 100)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>City/County ({taxRates.city}%)</span>
+                    <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.city) || 0) / 100)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Social Security ({taxRates.socialSecurity}%)</span>
+                    <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.socialSecurity) || 0) / 100)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Medicare ({taxRates.medicare}%)</span>
+                    <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.medicare) || 0) / 100)}</span>
                   </div>
                 </div>
                 <div className="result-item">

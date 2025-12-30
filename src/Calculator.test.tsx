@@ -38,7 +38,7 @@ describe('Calculator inputs', () => {
     await user.type(loan, '5.5');
 
     await user.click(screen.getByRole('button', { name: /Payments/i }));
-    const salary = screen.getByLabelText(/Expected Starting Salary/i);
+    const salary = screen.getByLabelText(/Expected Annual Starting Salary/i);
     await user.type(salary, '60000');
 
     expect(salary).toHaveValue(60000);
@@ -61,7 +61,7 @@ describe('Calculator inputs', () => {
     expect(screen.getByLabelText(/Loan Interest/i)).toHaveAttribute('type', 'number');
 
     await user.click(screen.getByRole('button', { name: /Payments/i }));
-    expect(screen.getByLabelText(/Expected Starting Salary/i)).toHaveAttribute('type', 'number');
+    expect(screen.getByLabelText(/Expected Annual Starting Salary/i)).toHaveAttribute('type', 'number');
   });
 
   it('renders a submit button', async () => {
@@ -99,7 +99,7 @@ describe('Calculator inputs', () => {
     await user.click(screen.getByRole('button', { name: /Payments/i }));
     await user.click(screen.getByRole('button', { name: /Calculate Payment Table/i }));
 
-    const salary = screen.getByLabelText(/Expected Starting Salary/i);
+    const salary = screen.getByLabelText(/Expected Annual Starting Salary/i);
     expect(salary).toHaveClass('error-input');
 
     await user.click(screen.getByRole('button', { name: /Costs/i }));
@@ -203,7 +203,7 @@ describe('Calculator inputs', () => {
     expect(tuitionInput).toHaveValue(320000);
 
     await user.click(screen.getByRole('button', { name: /Payments/i }));
-    const salaryInput = screen.getByLabelText(/Expected Starting Salary/i);
+    const salaryInput = screen.getByLabelText(/Expected Annual Starting Salary/i);
     expect(salaryInput).toHaveValue(91000);
   });
 
@@ -279,7 +279,7 @@ describe('Calculator inputs', () => {
     await user.click(screen.getByRole('button', { name: /Next/i }));
 
     // Check if Payments section is open (Salary input should be visible)
-    expect(screen.getByLabelText(/Expected Starting Salary/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Expected Annual Starting Salary/i)).toBeInTheDocument();
   });
 
   it('populates payment schedule table when Show Payment Schedule is clicked', async () => {
@@ -318,7 +318,7 @@ describe('Calculator inputs', () => {
     expect(screen.getByText('Balance')).toBeInTheDocument();
 
     // Expand Year 1 to see monthly details
-    await user.click(screen.getByText(/Year 1/i));
+    await user.click(screen.getByText(/Year 1$/i));
 
     // Verify first row values for Month 1 (now visible)
     // Interest: 60000 * 0.05 / 12 = 250
@@ -359,7 +359,7 @@ describe('Calculator inputs', () => {
     const collegeInput = screen.getByLabelText(/College Name/i);
     await user.type(collegeInput, 'Test University');
 
-    const saveButton = screen.getByRole('button', { name: /Save/i });
+    const saveButton = screen.getByRole('button', { name: 'Save' });
     await user.click(saveButton);
 
     expect(setItemSpy).toHaveBeenCalledWith(
@@ -464,7 +464,7 @@ describe('Calculator inputs', () => {
     // Verify default calculation (Federal ~15.3 + State 5.0 + Medicare 1.45 + SS 6.2 + City 0.0 = ~27.95%)
     // 10000 * 0.2795 = 2795 tax. Takehome = 7205.
     expect(screen.getByText('$2,795')).toBeInTheDocument();
-    expect(screen.getByText('$7,205')).toBeInTheDocument();
+    expect(screen.getAllByText('$7,205')[0]).toBeInTheDocument();
 
     // Change rates
     const state = screen.getByLabelText(/State Tax/i);
@@ -474,7 +474,7 @@ describe('Calculator inputs', () => {
     // New Total: 15.3 + 6.0 + 1.45 + 6.2 + 0.0 = 28.95%
     // 10000 * 0.2895 = 2895 tax. Takehome = 7105.
     expect(screen.getByText('$2,895')).toBeInTheDocument();
-    expect(screen.getByText('$7,105')).toBeInTheDocument();
+    expect(screen.getAllByText('$7,105')[0]).toBeInTheDocument();
 
     // Change Federal
     const federal = screen.getByLabelText(/Federal Tax/i);
@@ -483,10 +483,58 @@ describe('Calculator inputs', () => {
     // Total: 10.0 + 6.0 + 1.45 + 6.2 + 0.0 = 23.65%
     // 10000 * 0.2365 = 2365. Takehome = 7635.
     expect(screen.getByText('$2,365')).toBeInTheDocument();
-    expect(screen.getByText('$7,635')).toBeInTheDocument();
+    expect(screen.getAllByText('$7,635')[0]).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /Done/i }));
 
     expect(screen.getByLabelText(/Takehome after taxes/i)).toHaveValue(7635);
+  });
+
+  it('verifies tax breakdown values sum up to the total monthly tax', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    // Navigate to Payments section
+    await user.click(screen.getByRole('button', { name: /Payments/i }));
+
+    // Set Salary to 120,000 (10,000 monthly)
+    const salaryInput = screen.getByLabelText(/Expected Annual Starting Salary/i);
+    await user.type(salaryInput, '120000');
+
+    // Open Tax modal
+    await user.click(screen.getByLabelText(/Takehome after taxes/i));
+
+    // Set City Tax to 1.5% to ensure all values are non-zero and avoid trailing zero ambiguity
+    const cityInput = screen.getByLabelText(/City\/County Tax/i);
+    await user.clear(cityInput);
+    await user.type(cityInput, '1.5');
+
+    // Verify breakdown values
+    // Federal: ~15.3% -> $1,530
+    expect(screen.getByText(/Federal \(15.3%\)/)).toBeInTheDocument();
+    expect(screen.getByText('$1,530')).toBeInTheDocument();
+
+    // State: 5.0% -> $500
+    expect(screen.getByText(/State \(5.0%\)/)).toBeInTheDocument();
+    expect(screen.getByText('$500')).toBeInTheDocument();
+
+    // City: 1.5% -> $150
+    expect(screen.getByText(/City\/County \(1.5%\)/)).toBeInTheDocument();
+    expect(screen.getByText('$150')).toBeInTheDocument();
+
+    // Social Security: 6.2% -> $620
+    expect(screen.getByText(/Social Security \(6.2%\)/)).toBeInTheDocument();
+    expect(screen.getByText('$620')).toBeInTheDocument();
+
+    // Medicare: 1.45% -> $145
+    expect(screen.getByText(/Medicare \(1.45%\)/)).toBeInTheDocument();
+    expect(screen.getByText('$145')).toBeInTheDocument();
+
+    // Total Monthly Tax: 1530 + 500 + 150 + 620 + 145 = 2945
+    expect(screen.getByText('$2,945')).toBeInTheDocument();
   });
 });
