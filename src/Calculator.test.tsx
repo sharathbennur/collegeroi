@@ -179,4 +179,25 @@ describe('Calculator inputs', () => {
     expect(tuitionInputs[2]).toHaveValue(11025); // Year 3: 10000 * 1.05^2
     expect(tuitionInputs[3]).toHaveValue(11576); // Year 4: 10000 * 1.05^3 (rounded)
   });
+
+  it('populates form fields when a college is selected from the dropdown', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    const select = screen.getByLabelText(/Auto-fill from Top 20 Colleges/i);
+    const collegeInput = screen.getByLabelText(/College Name/i);
+    const tuitionInput = screen.getByLabelText(/4-Year Tuition \(\$\)/i);
+    const salaryInput = screen.getByLabelText(/Expected Starting Salary/i);
+
+    await user.selectOptions(select, 'Harvard University');
+
+    expect(collegeInput).toHaveValue('Harvard University');
+    // (59000 + 21000) * 4 = 320000
+    expect(tuitionInput).toHaveValue(320000);
+    expect(salaryInput).toHaveValue(91000);
+  });
 });

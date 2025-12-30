@@ -1,6 +1,7 @@
-import { useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useState, type FormEvent, type KeyboardEvent, type ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
 import './Calculator.css';
+import { colleges } from './assets/colleges.ts';
 
 const Calculator = () => {
   const [formData, setFormData] = useState({
@@ -32,6 +33,36 @@ const Calculator = () => {
     if (error) setError('');
     if (invalidFields.includes(name)) {
       setInvalidFields(prev => prev.filter(field => field !== name));
+    }
+  };
+
+  const handleCollegeSelect = (e: ChangeEvent<HTMLSelectElement>) => {
+    const selectedName = e.target.value;
+    if (!selectedName) return;
+
+    const college = colleges.find(c => c.name === selectedName);
+    if (college) {
+      const annualTuitionStr = college.annualTuition.toString();
+      const annualRoomBoardStr = college.annualRoomBoard.toString();
+      const totalTuition = (college.annualTuition + college.annualRoomBoard) * 4;
+
+      setFormData(prev => ({
+        ...prev,
+        collegeName: college.name,
+        salary: college.medianSalary.toString(),
+        tuition: totalTuition.toString()
+      }));
+
+      setTuitionBreakdown({
+        tuition1: annualTuitionStr, roomBoard1: annualRoomBoardStr,
+        tuition2: annualTuitionStr, roomBoard2: annualRoomBoardStr,
+        tuition3: annualTuitionStr, roomBoard3: annualRoomBoardStr,
+        tuition4: annualTuitionStr, roomBoard4: annualRoomBoardStr
+      });
+
+      // Clear errors for these fields
+      setInvalidFields(prev => prev.filter(f => !['collegeName', 'salary', 'tuition'].includes(f)));
+      if (error) setError('');
     }
   };
 
@@ -140,11 +171,27 @@ const Calculator = () => {
       <nav className="navbar">
         <Link to="/" className="brand-name">CollegeROI 🚀</Link>
       </nav>
+
+      <div className="instructions">
+        <p>
+          <strong>How to use:</strong> Enter your college details below. Click the <strong>4-Year Tuition</strong> field to enter a yearly breakdown of costs. 
+          Use the inflation tool to project future costs. Finally, click <strong>Calculate Payment Table</strong> to see your estimated loan repayment plan.
+        </p>
+      </div>
       
       <div className="content-grid">
         <div className="column left-col">
           <h3>Inputs</h3>
           <form className="input-form" onSubmit={handleSubmit}>
+            <div className="input-group">
+              <label htmlFor="collegeSelect">Auto-fill from Top 20 Colleges</label>
+              <select id="collegeSelect" onChange={handleCollegeSelect} defaultValue="">
+                <option value="" disabled>Select a college...</option>
+                {colleges.map(college => (
+                  <option key={college.rank} value={college.name}>{college.name}</option>
+                ))}
+              </select>
+            </div>
             <div className="input-group">
               <label htmlFor="collegeName">College Name</label>
               <input

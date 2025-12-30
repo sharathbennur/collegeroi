@@ -23,6 +23,22 @@
   color: inherit;
 }
 
+.instructions {
+  margin: 1rem 2rem 0;
+  padding: 1rem 1.5rem;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.instructions p {
+  margin: 0;
+  color: #334155;
+  line-height: 1.5;
+}
+
 .content-grid {
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
