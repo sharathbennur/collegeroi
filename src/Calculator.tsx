@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type KeyboardEvent, type ChangeEvent } from 'react';
+import { useState, useEffect, type FormEvent, type KeyboardEvent, type ChangeEvent, Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import './Calculator.css';
 import { colleges } from './assets/colleges.ts';
@@ -18,7 +18,8 @@ const Calculator = () => {
     familyContribution: '',
     loanInterest: '',
     loanTerm: '',
-    salary: ''
+    salary: '',
+    expenses: ''
   });
   const [error, setError] = useState('');
   const [invalidFields, setInvalidFields] = useState<string[]>([]);
@@ -43,6 +44,48 @@ const Calculator = () => {
   const [paymentSchedule, setPaymentSchedule] = useState<PaymentScheduleRow[]>([]);
   const [showSchedule, setShowSchedule] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(true);
+  const [expandedYears, setExpandedYears] = useState<number[]>([]);
+  const [showExpensesModal, setShowExpensesModal] = useState(false);
+  const [expensesBreakdown, setExpensesBreakdown] = useState({
+    rent: '2000',
+    groceries: '500',
+    eatingOut: '300',
+    utilities: '150',
+    transportation: '200',
+    healthCare: '150',
+    miscellaneous: '200',
+    contribution401k: '500'
+  });
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showTaxModal, setShowTaxModal] = useState(false);
+  const [taxRates, setTaxRates] = useState({
+    federal: '12.0',
+    state: '5.0',
+    medicare: '1.45',
+    socialSecurity: '6.2',
+    city: '0.0'
+  });
+
+  useEffect(() => {
+    const savedState = localStorage.getItem('collegeRoiCalcState');
+    if (savedState) {
+      try {
+        const parsedState = JSON.parse(savedState);
+        if (parsedState.formData) setFormData(parsedState.formData);
+        if (parsedState.tuitionBreakdown) setTuitionBreakdown(parsedState.tuitionBreakdown);
+        if (parsedState.expensesBreakdown) setExpensesBreakdown(parsedState.expensesBreakdown);
+        if (parsedState.taxRates) setTaxRates(parsedState.taxRates);
+        if (parsedState.inflationRate) setInflationRate(parsedState.inflationRate);
+        if (parsedState.sections) setSections(parsedState.sections);
+        if (parsedState.paymentSchedule) setPaymentSchedule(parsedState.paymentSchedule);
+        if (parsedState.showSchedule !== undefined) setShowSchedule(parsedState.showSchedule);
+        if (parsedState.scheduleOpen !== undefined) setScheduleOpen(parsedState.scheduleOpen);
+        if (parsedState.expandedYears) setExpandedYears(parsedState.expandedYears);
+      } catch (error) {
+        console.error('Error loading saved state:', error);
+      }
+    }
+  }, []);
 
   const toggleSection = (section: keyof typeof sections) => {
     setSections(prev => ({
@@ -50,6 +93,12 @@ const Calculator = () => {
       loans: section === 'loans' ? !prev.loans : false,
       payments: section === 'payments' ? !prev.payments : false
     }));
+  };
+
+  const toggleYear = (year: number) => {
+    setExpandedYears(prev => 
+      prev.includes(year) ? prev.filter(y => y !== year) : [...prev, year]
+    );
   };
 
   const handleChange = (e: FormEvent<HTMLInputElement>) => {
@@ -148,6 +197,37 @@ const Calculator = () => {
     }));
   };
 
+  const handleExpensesChange = (e: FormEvent<HTMLInputElement>) => {
+    const { name, value } = e.currentTarget;
+    if (parseFloat(value) < 0) return;
+    setExpensesBreakdown(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleTaxChange = (e: FormEvent<HTMLInputElement>) => {
+    const { name, value } = e.currentTarget;
+    if (parseFloat(value) < 0) return;
+    setTaxRates(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleExpensesDone = () => {
+    const total = Object.values(expensesBreakdown).reduce((acc, val) => acc + (parseFloat(val) || 0), 0);
+    setFormData(prev => ({ ...prev, expenses: total.toString() }));
+    setShowExpensesModal(false);
+  };
+
+  const handleExpensesClear = () => {
+    setExpensesBreakdown({
+      rent: '',
+      groceries: '',
+      eatingOut: '',
+      utilities: '',
+      transportation: '',
+      healthCare: '',
+      miscellaneous: '',
+      contribution401k: ''
+    });
+  };
+
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -205,6 +285,36 @@ const Calculator = () => {
     setPaymentSchedule(schedule);
     setShowSchedule(true);
     setScheduleOpen(true);
+    setExpandedYears([]);
+  };
+
+  const handleSave = () => {
+    const state = {
+      formData,
+      tuitionBreakdown,
+      expensesBreakdown,
+      taxRates,
+      inflationRate,
+      sections,
+      paymentSchedule,
+      showSchedule,
+      scheduleOpen,
+      expandedYears
+    };
+    localStorage.setItem('collegeRoiCalcState', JSON.stringify(state));
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 2000);
+  };
+
+  const handleClearSave = () => {
+    if (window.confirm('Are you sure you want to clear all saved data? This action cannot be undone.')) {
+      localStorage.removeItem('collegeRoiCalcState');
+      alert('Saved data cleared from local storage');
+    }
+  };
+
+  const handleExport = () => {
+    window.print();
   };
 
   const calculateFourYearCost = () => {
@@ -260,6 +370,80 @@ const Calculator = () => {
       currency: 'USD',
       maximumFractionDigits: 0,
     }).format(value);
+  };
+
+  const getYearlyData = () => {
+    const yearlyData = [];
+    let currentYear = 1;
+    
+    for (let i = 0; i < paymentSchedule.length; i += 12) {
+      const yearMonths = paymentSchedule.slice(i, i + 12);
+      if (yearMonths.length === 0) continue;
+
+      const totalPayment = yearMonths.reduce((sum, m) => sum + m.payment, 0);
+      const totalPrincipal = yearMonths.reduce((sum, m) => sum + m.principal, 0);
+      const totalInterest = yearMonths.reduce((sum, m) => sum + m.interest, 0);
+      const endBalance = yearMonths[yearMonths.length - 1].balance;
+      
+      yearlyData.push({
+        year: currentYear,
+        payment: totalPayment,
+        principal: totalPrincipal,
+        interest: totalInterest,
+        balance: endBalance,
+        months: yearMonths
+      });
+      currentYear++;
+    }
+    return yearlyData;
+  };
+
+  const getMonthlyGross = () => (parseFloat(formData.salary) || 0) / 12;
+  
+  const getMonthlyTax = () => {
+    const gross = getMonthlyGross();
+    const totalRate = Object.values(taxRates).reduce((acc, val) => acc + (parseFloat(val) || 0), 0);
+    return gross * (totalRate / 100);
+  };
+  
+  const getMonthlyTakeHome = () => getMonthlyGross() - getMonthlyTax();
+
+  const calculateEffectiveFederalTaxRate = (annualSalary: number) => {
+    const standardDeduction = 14600;
+    const taxableIncome = Math.max(0, annualSalary - standardDeduction);
+    
+    // 2024 Tax Brackets for Single Filers
+    const brackets = [
+      { limit: 11600, rate: 0.10 },
+      { limit: 47150, rate: 0.12 },
+      { limit: 100525, rate: 0.22 },
+      { limit: 191950, rate: 0.24 },
+      { limit: 243725, rate: 0.32 },
+      { limit: 609350, rate: 0.35 },
+      { limit: Infinity, rate: 0.37 }
+    ];
+
+    let tax = 0;
+    let previousLimit = 0;
+
+    for (const bracket of brackets) {
+      if (taxableIncome > bracket.limit) {
+        tax += (bracket.limit - previousLimit) * bracket.rate;
+        previousLimit = bracket.limit;
+      } else {
+        tax += (taxableIncome - previousLimit) * bracket.rate;
+        break;
+      }
+    }
+
+    return annualSalary > 0 ? ((tax / annualSalary) * 100).toFixed(1) : '0.0';
+  };
+
+  const calculateNetMonthlyCashFlow = () => {
+    const takeHome = getMonthlyTakeHome();
+    const expenses = parseFloat(formData.expenses) || 0;
+    const loanPayment = calculateMonthlyPayment();
+    return takeHome - expenses - loanPayment;
   };
 
   return (
@@ -372,7 +556,7 @@ const Calculator = () => {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '1rem' }}>
-                    <button type="button" className="secondary-button" style={{ flex: 1 }} onClick={handleShowSchedule}>
+                    <button type="button" className="schedule-button" style={{ flex: 1 }} onClick={handleShowSchedule}>
                       Show Payment Schedule
                     </button>
                     <button type="button" className="secondary-button" style={{ flex: 1 }} onClick={() => toggleSection('payments')}>
@@ -391,7 +575,7 @@ const Calculator = () => {
               {sections.payments && (
                 <div className="section-content">
                   <div className="input-group">
-                    <label htmlFor="salary">Expected Starting Salary ($)</label>
+                    <label htmlFor="salary">Expected Annual Starting Salary ($)</label>
                     <input
                       type="number"
                       id="salary"
@@ -400,6 +584,36 @@ const Calculator = () => {
                       value={formData.salary}
                       onChange={handleChange}
                       className={invalidFields.includes('salary') ? 'error-input' : ''}
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="takeHomePay">Takehome after taxes (Monthly $)</label>
+                    <input
+                      type="number"
+                      id="takeHomePay"
+                      placeholder="Click to calculate taxes"
+                      value={Math.round(getMonthlyTakeHome()) || ''}
+                      readOnly
+                      onClick={() => {
+                        const salary = parseFloat(formData.salary) || 0;
+                        if (salary > 0) {
+                          const estimatedFedRate = calculateEffectiveFederalTaxRate(salary);
+                          setTaxRates(prev => ({ ...prev, federal: estimatedFedRate }));
+                        }
+                        setShowTaxModal(true);
+                      }}
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="expenses">Monthly Expenses ($)</label>
+                    <input
+                      type="number"
+                      id="expenses"
+                      name="expenses"
+                      placeholder="Click to enter expenses breakdown"
+                      value={formData.expenses}
+                      readOnly
+                      onClick={() => setShowExpensesModal(true)}
                     />
                   </div>
                   {error && <div className="error-message">{error}</div>}
@@ -412,7 +626,23 @@ const Calculator = () => {
           </form>
         </div>
         <div className="column center-col">
-          <h3>Costs & Interest</h3>
+          <div className="section-header">
+            <h3>Costs & Interest</h3>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button type="button" className="schedule-button" onClick={handleSave} aria-label="Save" title="Save">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                {saveSuccess && (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '0.5rem' }}><polyline points="20 6 9 17 4 12"></polyline></svg>
+                )}
+              </button>
+              <button type="button" className="schedule-button" onClick={handleClearSave} aria-label="Clear Saved Data" title="Clear Saved Data">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+              </button>
+              <button type="button" className="schedule-button" onClick={handleExport} aria-label="Export" title="Export">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              </button>
+            </div>
+          </div>
           <div className="result-card">
             <h4 style={{ margin: 0, color: '#334155' }}>Cost Summary</h4>
             <div className="result-item">
@@ -442,6 +672,12 @@ const Calculator = () => {
               <h4>Total Interest Paid</h4>
               <div className="value">{formatCurrency(calculateTotalInterest())}</div>
             </div>
+            <div className="result-item">
+              <h4>Net Monthly Cash Flow</h4>
+              <div className="value" style={{ color: calculateNetMonthlyCashFlow() >= 0 ? '#10b981' : '#ef4444' }}>
+                {formatCurrency(calculateNetMonthlyCashFlow())}
+              </div>
+            </div>
           </div>
 
           {showSchedule && (
@@ -460,7 +696,7 @@ const Calculator = () => {
                   <table className="schedule-table">
                     <thead>
                       <tr>
-                        <th>Month</th>
+                        <th>Year / Month</th>
                         <th>Payment</th>
                         <th>Principal</th>
                         <th>Interest</th>
@@ -469,14 +705,31 @@ const Calculator = () => {
                     </thead>
                     <tbody>
                       {paymentSchedule.length > 0 ? (
-                        paymentSchedule.map((row) => (
-                          <tr key={row.month}>
-                            <td>{row.month}</td>
-                            <td>{formatCurrency(row.payment)}</td>
-                            <td>{formatCurrency(row.principal)}</td>
-                            <td>{formatCurrency(row.interest)}</td>
-                            <td>{formatCurrency(row.balance)}</td>
-                          </tr>
+                        getYearlyData().map((yearData) => (
+                          <Fragment key={yearData.year}>
+                            <tr 
+                              onClick={() => toggleYear(yearData.year)} 
+                              style={{ cursor: 'pointer', fontWeight: 'bold', background: 'rgba(255,255,255,0.6)' }}
+                            >
+                              <td style={{ textAlign: 'left', paddingLeft: '1rem' }}>
+                                <span style={{ display: 'inline-block', width: '1.5rem' }}>{expandedYears.includes(yearData.year) ? '−' : '+'}</span>
+                                Year {yearData.year}
+                              </td>
+                              <td>{formatCurrency(yearData.payment)}</td>
+                              <td>{formatCurrency(yearData.principal)}</td>
+                              <td>{formatCurrency(yearData.interest)}</td>
+                              <td>{formatCurrency(yearData.balance)}</td>
+                            </tr>
+                            {expandedYears.includes(yearData.year) && yearData.months.map((row) => (
+                              <tr key={row.month} style={{ background: 'rgba(255,255,255,0.3)' }}>
+                                <td style={{ textAlign: 'left', paddingLeft: '3rem' }}>Month {row.month}</td>
+                                <td>{formatCurrency(row.payment)}</td>
+                                <td>{formatCurrency(row.principal)}</td>
+                                <td>{formatCurrency(row.interest)}</td>
+                                <td>{formatCurrency(row.balance)}</td>
+                              </tr>
+                            ))}
+                          </Fragment>
                         ))
                       ) : (
                         <tr>
@@ -610,6 +863,309 @@ const Calculator = () => {
           </div>
         </div>
       )}
+
+      {showExpensesModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Monthly Expenses Breakdown</h3>
+            <div className="input-form">
+              <div className="input-row">
+                <div className="input-group">
+                  <label htmlFor="rent">
+                    Rent
+                    <span className="info-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                      <span className="tooltip-text">Monthly rent or mortgage payment</span>
+                    </span>
+                  </label>
+                  <input
+                    type="number"
+                    id="rent"
+                    name="rent"
+                    min="0"
+                    placeholder="e.g. 1500"
+                    value={expensesBreakdown.rent}
+                    onChange={handleExpensesChange}
+                    onKeyDown={handleKeyDown}
+                  />
+                </div>
+                <div className="input-group">
+                  <label htmlFor="groceries">
+                    Groceries
+                    <span className="info-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                      <span className="tooltip-text">Food and household supplies</span>
+                    </span>
+                  </label>
+                  <input
+                    type="number"
+                    id="groceries"
+                    name="groceries"
+                    min="0"
+                    placeholder="e.g. 400"
+                    value={expensesBreakdown.groceries}
+                    onChange={handleExpensesChange}
+                    onKeyDown={handleKeyDown}
+                  />
+                </div>
+              </div>
+              <div className="input-row">
+                <div className="input-group">
+                  <label htmlFor="eatingOut">
+                    Eating out
+                    <span className="info-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                      <span className="tooltip-text">Restaurants, cafes, and takeout</span>
+                    </span>
+                  </label>
+                  <input
+                    type="number"
+                    id="eatingOut"
+                    name="eatingOut"
+                    min="0"
+                    placeholder="e.g. 200"
+                    value={expensesBreakdown.eatingOut}
+                    onChange={handleExpensesChange}
+                    onKeyDown={handleKeyDown}
+                  />
+                </div>
+                <div className="input-group">
+                  <label htmlFor="utilities">
+                    Utilities
+                    <span className="info-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                      <span className="tooltip-text">Electricity, water, gas, internet, phone</span>
+                    </span>
+                  </label>
+                  <input
+                    type="number"
+                    id="utilities"
+                    name="utilities"
+                    min="0"
+                    placeholder="e.g. 150"
+                    value={expensesBreakdown.utilities}
+                    onChange={handleExpensesChange}
+                    onKeyDown={handleKeyDown}
+                  />
+                </div>
+              </div>
+              <div className="input-row">
+                <div className="input-group">
+                  <label htmlFor="transportation">
+                    Transportation
+                    <span className="info-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                      <span className="tooltip-text">Gas, insurance, maintenance, public transit</span>
+                    </span>
+                  </label>
+                  <input
+                    type="number"
+                    id="transportation"
+                    name="transportation"
+                    min="0"
+                    placeholder="e.g. 300"
+                    value={expensesBreakdown.transportation}
+                    onChange={handleExpensesChange}
+                    onKeyDown={handleKeyDown}
+                  />
+                </div>
+                <div className="input-group">
+                  <label htmlFor="healthCare">
+                    HealthCare
+                    <span className="info-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                      <span className="tooltip-text">Insurance premiums, copays, medications</span>
+                    </span>
+                  </label>
+                  <input
+                    type="number"
+                    id="healthCare"
+                    name="healthCare"
+                    min="0"
+                    placeholder="e.g. 100"
+                    value={expensesBreakdown.healthCare}
+                    onChange={handleExpensesChange}
+                    onKeyDown={handleKeyDown}
+                  />
+                </div>
+              </div>
+              <div className="input-row">
+                <div className="input-group">
+                  <label htmlFor="miscellaneous">
+                    Miscellaneous
+                    <span className="info-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                      <span className="tooltip-text">Clothing, entertainment, personal care</span>
+                    </span>
+                  </label>
+                  <input
+                    type="number"
+                    id="miscellaneous"
+                    name="miscellaneous"
+                    min="0"
+                    placeholder="e.g. 100"
+                    value={expensesBreakdown.miscellaneous}
+                    onChange={handleExpensesChange}
+                    onKeyDown={handleKeyDown}
+                  />
+                </div>
+                <div className="input-group">
+                  <label htmlFor="contribution401k">
+                    401k Contribution
+                    <span className="info-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                      <span className="tooltip-text">Monthly retirement savings contribution</span>
+                    </span>
+                  </label>
+                  <input
+                    type="number"
+                    id="contribution401k"
+                    name="contribution401k"
+                    min="0"
+                    placeholder="e.g. 500"
+                    value={expensesBreakdown.contribution401k}
+                    onChange={handleExpensesChange}
+                    onKeyDown={handleKeyDown}
+                  />
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <button type="button" className="calculate-button" onClick={handleExpensesDone} style={{ flex: 1 }}>
+                  Done
+                </button>
+                <button 
+                  type="button" 
+                  className="calculate-button" 
+                  onClick={handleExpensesClear}
+                  style={{ flex: 1, background: '#64748b' }}>
+                  Clear All
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showTaxModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Estimated Monthly Tax Breakdown</h3>
+            <p style={{ color: '#64748b', marginBottom: '1rem' }}>
+              Monthly Gross Income: <strong>{formatCurrency(getMonthlyGross())}</strong>
+            </p>
+            <div className="input-form">
+              <div className="input-row">
+                <div className="input-group">
+                  <label htmlFor="federal">
+                    Federal Tax (%)
+                    <span className="info-icon">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                      <div className="tooltip-text wide-tooltip">
+                        <div style={{ marginBottom: '0.5rem', fontWeight: 'bold', textAlign: 'center' }}>2024 Tax Brackets (Single)</div>
+                        <table className="tooltip-table">
+                          <thead>
+                            <tr><th style={{ textAlign: 'left' }}>Income Range</th><th style={{ textAlign: 'right' }}>Rate</th></tr>
+                          </thead>
+                          <tbody>
+                            <tr><td>$0 - $11,600</td><td style={{ textAlign: 'right' }}>10%</td></tr>
+                            <tr><td>$11,601 - $47,150</td><td style={{ textAlign: 'right' }}>12%</td></tr>
+                            <tr><td>$47,151 - $100,525</td><td style={{ textAlign: 'right' }}>22%</td></tr>
+                            <tr><td>$100,526 - $191,950</td><td style={{ textAlign: 'right' }}>24%</td></tr>
+                            <tr><td>$191,951 - $243,725</td><td style={{ textAlign: 'right' }}>32%</td></tr>
+                            <tr><td>$243,726 - $609,350</td><td style={{ textAlign: 'right' }}>35%</td></tr>
+                            <tr><td>$609,351+</td><td style={{ textAlign: 'right' }}>37%</td></tr>
+                          </tbody>
+                        </table>
+                        <div style={{ marginTop: '0.5rem', fontSize: '0.65rem', fontStyle: 'italic', textAlign: 'center' }}>* Standard deduction: $14,600</div>
+                      </div>
+                    </span>
+                  </label>
+                  <input
+                    type="number"
+                    id="federal"
+                    name="federal"
+                    step="0.1"
+                    value={taxRates.federal}
+                    onChange={handleTaxChange}
+                  />
+                </div>
+                <div className="input-group">
+                  <label htmlFor="state">State Tax (%)</label>
+                  <input
+                    type="number"
+                    id="state"
+                    name="state"
+                    step="0.1"
+                    value={taxRates.state}
+                    onChange={handleTaxChange}
+                  />
+                </div>
+              </div>
+              <div className="input-row">
+                <div className="input-group">
+                  <label htmlFor="city">City/County Tax (%)</label>
+                  <input
+                    type="number"
+                    id="city"
+                    name="city"
+                    step="0.1"
+                    value={taxRates.city}
+                    onChange={handleTaxChange}
+                  />
+                </div>
+                <div className="input-group">
+                  <label htmlFor="socialSecurity">Social Security (%)</label>
+                  <input
+                    type="number"
+                    id="socialSecurity"
+                    name="socialSecurity"
+                    step="0.1"
+                    value={taxRates.socialSecurity}
+                    onChange={handleTaxChange}
+                  />
+                </div>
+              </div>
+              <div className="input-row">
+                <div className="input-group">
+                  <label htmlFor="medicare">Medicare (%)</label>
+                  <input
+                    type="number"
+                    id="medicare"
+                    name="medicare"
+                    step="0.1"
+                    value={taxRates.medicare}
+                    onChange={handleTaxChange}
+                  />
+                </div>
+              </div>
+              
+              <div className="result-card" style={{ marginTop: '1rem', background: '#f8fafc' }}>
+                <div className="result-item">
+                  <h4>Total Monthly Tax</h4>
+                  <div className="value" style={{ fontSize: '1.1rem', color: '#ef4444' }}>
+                    {formatCurrency(getMonthlyTax())}
+                  </div>
+                </div>
+                <div className="result-item">
+                  <h4>Est. Monthly Take-home</h4>
+                  <div className="value" style={{ fontSize: '1.1rem', color: '#10b981' }}>
+                    {formatCurrency(getMonthlyTakeHome())}
+                  </div>
+                </div>
+              </div>
+
+              <button className="calculate-button" onClick={() => setShowTaxModal(false)} style={{ marginTop: '1rem' }}>
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="print-footer">
+        <span>Generated using CollegeROI.app</span>
+        <span>{new Date().toLocaleDateString()}</span>
+      </div>
     </div>
   );
 };

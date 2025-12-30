@@ -2,7 +2,7 @@
 import { render, screen, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom/vitest';
-import { describe, it, expect, afterEach } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import Calculator from './Calculator';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -311,18 +311,182 @@ describe('Calculator inputs', () => {
     await user.click(screen.getByRole('button', { name: /Show Payment Schedule/i }));
 
     // Verify table headers exist
-    expect(screen.getByText('Month')).toBeInTheDocument();
+    expect(screen.getByText('Year / Month')).toBeInTheDocument();
     expect(screen.getByText('Payment')).toBeInTheDocument();
     expect(screen.getByText('Principal')).toBeInTheDocument();
     expect(screen.getByText('Interest')).toBeInTheDocument();
     expect(screen.getByText('Balance')).toBeInTheDocument();
 
-    // Verify first row values for Month 1
+    // Expand Year 1 to see monthly details
+    await user.click(screen.getByText(/Year 1/i));
+
+    // Verify first row values for Month 1 (now visible)
     // Interest: 60000 * 0.05 / 12 = 250
     expect(screen.getByText('$250')).toBeInTheDocument();
     // Principal: 636 - 250 = 386
     expect(screen.getByText('$386')).toBeInTheDocument();
     // Balance: 60000 - 386 = 59614
     expect(screen.getByText('$59,614')).toBeInTheDocument();
+  });
+
+  it('triggers a confirmation dialog when Clear Saved Data is clicked', async () => {
+    const user = userEvent.setup();
+    const confirmSpy = vi.spyOn(window, 'confirm').mockImplementation(() => true);
+
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    const clearButton = screen.getByRole('button', { name: /Clear Saved Data/i });
+    await user.click(clearButton);
+
+    expect(confirmSpy).toHaveBeenCalledWith(expect.stringContaining('Are you sure'));
+    confirmSpy.mockRestore();
+  });
+
+  it('saves state to localStorage when Save button is clicked', async () => {
+    const user = userEvent.setup();
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    const collegeInput = screen.getByLabelText(/College Name/i);
+    await user.type(collegeInput, 'Test University');
+
+    const saveButton = screen.getByRole('button', { name: /Save/i });
+    await user.click(saveButton);
+
+    expect(setItemSpy).toHaveBeenCalledWith(
+      'collegeRoiCalcState',
+      expect.stringContaining('"collegeName":"Test University"')
+    );
+
+    setItemSpy.mockRestore();
+  });
+
+  it('loads state from localStorage on mount', () => {
+    const savedState = {
+      formData: {
+        collegeName: 'Saved University',
+        tuition: '50000',
+        familyContribution: '10000',
+        loanInterest: '4.5',
+        loanTerm: '10',
+        salary: '70000'
+      },
+      sections: { costs: true, loans: true, payments: false }
+    };
+
+    const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockReturnValue(JSON.stringify(savedState));
+
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByLabelText(/College Name/i)).toHaveValue('Saved University');
+    expect(screen.getByLabelText(/Loan Interest/i)).toHaveValue(4.5);
+
+    getItemSpy.mockRestore();
+  });
+
+  it('calculates total expenses correctly from modal inputs', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    // Navigate to Payments section
+    await user.click(screen.getByRole('button', { name: /Payments/i }));
+
+    // Open Expenses modal
+    await user.click(screen.getByLabelText(/Expenses \(\$\)/i));
+
+    // Fill in expenses
+    const rent = screen.getByLabelText(/Rent/i);
+    await user.clear(rent);
+    await user.type(rent, '1500');
+    const groceries = screen.getByLabelText(/Groceries/i);
+    await user.clear(groceries);
+    await user.type(groceries, '400');
+    const eatingOut = screen.getByLabelText(/Eating out/i);
+    await user.clear(eatingOut);
+    await user.type(eatingOut, '200');
+    const utilities = screen.getByLabelText(/Utilities/i);
+    await user.clear(utilities);
+    await user.type(utilities, '150');
+    const transportation = screen.getByLabelText(/Transportation/i);
+    await user.clear(transportation);
+    await user.type(transportation, '300');
+    const healthCare = screen.getByLabelText(/HealthCare/i);
+    await user.clear(healthCare);
+    await user.type(healthCare, '100');
+    const miscellaneous = screen.getByLabelText(/Miscellaneous/i);
+    await user.clear(miscellaneous);
+    await user.type(miscellaneous, '100');
+    const contribution401k = screen.getByLabelText(/401k Contribution/i);
+    await user.clear(contribution401k);
+    await user.type(contribution401k, '500');
+
+    await user.click(screen.getByRole('button', { name: /Done/i }));
+
+    // Total: 1500 + 400 + 200 + 150 + 300 + 100 + 100 + 500 = 3250
+    expect(screen.getByLabelText(/Expenses \(\$\)/i)).toHaveValue(3250);
+  });
+
+  it('calculates take-home pay correctly from tax modal inputs', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    // Navigate to Payments section
+    await user.click(screen.getByRole('button', { name: /Payments/i }));
+
+    // Set Salary
+    const salaryInput = screen.getByLabelText(/Expected Annual Starting Salary/i);
+    await user.type(salaryInput, '120000'); // 10k monthly
+
+    // Open Tax modal
+    await user.click(screen.getByLabelText(/Takehome after taxes/i));
+
+    // Verify default calculation (Federal ~15.3 + State 5.0 + Medicare 1.45 + SS 6.2 + City 0.0 = ~27.95%)
+    // 10000 * 0.2795 = 2795 tax. Takehome = 7205.
+    expect(screen.getByText('$2,795')).toBeInTheDocument();
+    expect(screen.getByText('$7,205')).toBeInTheDocument();
+
+    // Change rates
+    const state = screen.getByLabelText(/State Tax/i);
+    await user.clear(state);
+    await user.type(state, '6.0');
+
+    // New Total: 15.3 + 6.0 + 1.45 + 6.2 + 0.0 = 28.95%
+    // 10000 * 0.2895 = 2895 tax. Takehome = 7105.
+    expect(screen.getByText('$2,895')).toBeInTheDocument();
+    expect(screen.getByText('$7,105')).toBeInTheDocument();
+
+    // Change Federal
+    const federal = screen.getByLabelText(/Federal Tax/i);
+    await user.clear(federal);
+    await user.type(federal, '10.0');
+    // Total: 10.0 + 6.0 + 1.45 + 6.2 + 0.0 = 23.65%
+    // 10000 * 0.2365 = 2365. Takehome = 7635.
+    expect(screen.getByText('$2,365')).toBeInTheDocument();
+    expect(screen.getByText('$7,635')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Done/i }));
+
+    expect(screen.getByLabelText(/Takehome after taxes/i)).toHaveValue(7635);
   });
 });

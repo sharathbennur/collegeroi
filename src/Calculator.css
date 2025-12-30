@@ -74,6 +74,29 @@
   font-weight: 600;
   color: #475569;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.schedule-button {
+  padding: 0.4rem 0.8rem;
+  background: #eef2ff;
+  border: 1px solid #818cf8;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4338ca;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.schedule-button:hover {
+  background: #e0e7ff;
+  border-color: #6366f1;
 }
 
 .input-form {
@@ -272,4 +295,138 @@
   text-align: center;
   border-bottom: 1px solid #e2e8f0;
   color: #334155;
+}
+
+.print-footer {
+  display: none;
+}
+
+@media print {
+  .navbar, 
+  .instructions, 
+  .secondary-button, 
+  .schedule-button, 
+  .calculate-button,
+  .section-toggle span:last-child,
+  .column.right-col {
+    display: none !important;
+  }
+
+  .calculator-container {
+    height: auto;
+    display: block;
+    background: white;
+  }
+
+  .content-grid {
+    display: block;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .column {
+    box-shadow: none;
+    border: none;
+    background: none;
+    backdrop-filter: none;
+    padding: 0;
+    margin-bottom: 2rem;
+    width: 100%;
+  }
+
+  .section-toggle {
+    background: none;
+    color: black;
+    border: none;
+    border-bottom: 2px solid #333;
+    padding-left: 0;
+  }
+
+  .collapsible-section {
+    border: none;
+    background: none;
+  }
+
+  .schedule-container {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .print-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #cbd5e1;
+    font-size: 0.85rem;
+    color: #64748b;
+  }
+}
+
+.info-icon {
+  position: relative;
+  display: inline-flex;
+  margin-left: 0.4rem;
+  color: #64748b;
+  cursor: help;
+  vertical-align: middle;
+}
+
+.info-icon:hover {
+  color: #475569;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  width: 160px;
+  background-color: #334155;
+  color: #fff;
+  text-align: center;
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  position: absolute;
+  z-index: 10;
+  bottom: 135%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.2s;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  pointer-events: none;
+}
+
+.tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #334155 transparent transparent transparent;
+}
+
+.info-icon:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.wide-tooltip {
+  width: 280px;
+  text-align: left;
+}
+
+.tooltip-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+  color: #fff;
+}
+
+.tooltip-table th, .tooltip-table td {
+  padding: 2px 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
 }
