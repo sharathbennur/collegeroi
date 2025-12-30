@@ -246,7 +246,7 @@
   max-height: 300px;
   overflow-y: auto;
   background: rgba(255, 255, 255, 0.5);
-  padding: 1.5rem;
+  padding: 0;
 }
 
 .schedule-table {
@@ -256,7 +256,7 @@
 }
 
 .schedule-table th {
-  background: rgba(255, 255, 255, 0.8);
+  background: #ffffff;
   padding: 0.75rem 0.5rem;
   text-align: center;
   font-weight: 700;
@@ -264,11 +264,12 @@
   position: sticky;
   top: 0;
   border-bottom: 1px solid #cbd5e1;
+  z-index: 1;
 }
 
 .schedule-table td {
   padding: 0.5rem;
-  text-align: right;
+  text-align: center;
   border-bottom: 1px solid #e2e8f0;
   color: #334155;
 }
