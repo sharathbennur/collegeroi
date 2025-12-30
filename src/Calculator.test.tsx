@@ -26,13 +26,17 @@ describe('Calculator inputs', () => {
     const salary = screen.getByLabelText(/Expected Starting Salary/i) as HTMLInputElement;
 
     await user.clear(college);
-    await user.clear(tuition);
     await user.clear(family);
     await user.clear(loan);
     await user.clear(salary);
 
     await user.type(college, 'Harvard University');
-    await user.type(tuition, '80000');
+
+    await user.click(tuition);
+    const modalTuitionInputs = screen.getAllByLabelText(/Tuition \+ Other/i);
+    await user.type(modalTuitionInputs[0], '80000');
+    await user.click(screen.getByRole('button', { name: /Done/i }));
+
     await user.type(family, '40000');
     await user.type(loan, '5.5');
     await user.type(salary, '60000');
@@ -104,5 +108,75 @@ describe('Calculator inputs', () => {
     expect(family).toHaveClass('error-input');
     expect(loan).toHaveClass('error-input');
     expect(salary).toHaveClass('error-input');
+  });
+
+  it('calculates total tuition correctly from modal inputs', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    await user.click(screen.getByLabelText(/4-Year Tuition \(\$\)/i));
+
+    const tuitionInputs = screen.getAllByLabelText(/Tuition \+ Other/i);
+    const roomBoardInputs = screen.getAllByLabelText(/Room \+ Board/i);
+
+    await user.type(tuitionInputs[0], '10000');
+    await user.type(roomBoardInputs[0], '5000');
+    await user.type(tuitionInputs[1], '12000');
+    await user.type(roomBoardInputs[1], '6000');
+
+    await user.click(screen.getByRole('button', { name: /Done/i }));
+
+    expect(screen.getByLabelText(/4-Year Tuition \(\$\)/i)).toHaveValue(33000);
+  });
+
+  it('copies Year 1 values to all other years when "Copy to all" is clicked', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    await user.click(screen.getByLabelText(/4-Year Tuition \(\$\)/i));
+
+    const tuitionInputs = screen.getAllByLabelText(/Tuition \+ Other/i);
+    const roomBoardInputs = screen.getAllByLabelText(/Room \+ Board/i);
+
+    await user.type(tuitionInputs[0], '20000');
+    await user.type(roomBoardInputs[0], '10000');
+
+    await user.click(screen.getByText(/Copy to all/i));
+
+    expect(tuitionInputs[1]).toHaveValue(20000);
+    expect(roomBoardInputs[1]).toHaveValue(10000);
+    expect(tuitionInputs[3]).toHaveValue(20000);
+    expect(roomBoardInputs[3]).toHaveValue(10000);
+  });
+
+  it('applies inflation rate correctly when copying values', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    await user.click(screen.getByLabelText(/4-Year Tuition \(\$\)/i));
+
+    const tuitionInputs = screen.getAllByLabelText(/Tuition \+ Other/i);
+    const inflationInput = screen.getByPlaceholderText(/Inflation/i);
+
+    await user.type(tuitionInputs[0], '10000');
+    await user.type(inflationInput, '5');
+
+    await user.click(screen.getByText(/Copy to all/i));
+
+    expect(tuitionInputs[1]).toHaveValue(10500); // Year 2: 10000 * 1.05
+    expect(tuitionInputs[2]).toHaveValue(11025); // Year 3: 10000 * 1.05^2
+    expect(tuitionInputs[3]).toHaveValue(11576); // Year 4: 10000 * 1.05^3 (rounded)
   });
 });

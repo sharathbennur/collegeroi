@@ -15,11 +15,16 @@ const Calculator = () => {
   const [invalidFields, setInvalidFields] = useState<string[]>([]);
   const [showTuitionModal, setShowTuitionModal] = useState(false);
   const [tuitionBreakdown, setTuitionBreakdown] = useState({
-    year1: '',
-    year2: '',
-    year3: '',
-    year4: ''
+    tuition1: '',
+    roomBoard1: '',
+    tuition2: '',
+    roomBoard2: '',
+    tuition3: '',
+    roomBoard3: '',
+    tuition4: '',
+    roomBoard4: ''
   });
+  const [inflationRate, setInflationRate] = useState('');
 
   const handleChange = (e: FormEvent<HTMLInputElement>) => {
     const { name, value } = e.currentTarget;
@@ -52,6 +57,39 @@ const Calculator = () => {
     }
     
     if (error) setError('');
+  };
+
+  const handleTuitionClear = () => {
+    setTuitionBreakdown({
+      tuition1: '',
+      roomBoard1: '',
+      tuition2: '',
+      roomBoard2: '',
+      tuition3: '',
+      roomBoard3: '',
+      tuition4: '',
+      roomBoard4: ''
+    });
+  };
+
+  const handleCopyYear1 = () => {
+    const rate = parseFloat(inflationRate) / 100 || 0;
+
+    const calculateNext = (value: string, years: number) => {
+      const num = parseFloat(value);
+      if (isNaN(num)) return '';
+      return Math.round(num * Math.pow(1 + rate, years)).toString();
+    };
+
+    setTuitionBreakdown(prev => ({
+      ...prev,
+      tuition2: calculateNext(prev.tuition1, 1),
+      roomBoard2: calculateNext(prev.roomBoard1, 1),
+      tuition3: calculateNext(prev.tuition1, 2),
+      roomBoard3: calculateNext(prev.roomBoard1, 2),
+      tuition4: calculateNext(prev.tuition1, 3),
+      roomBoard4: calculateNext(prev.roomBoard1, 3),
+    }));
   };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -218,26 +256,93 @@ const Calculator = () => {
       {showTuitionModal && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3>Tuition Breakdown</h3>
+            <h3>4-Year Cost Breakdown</h3>
             <div className="input-form">
               {['1', '2', '3', '4'].map((year) => (
-                <div className="input-group" key={year}>
-                  <label htmlFor={`year${year}`}>Year-{year}</label>
-                  <input
-                    type="number"
-                    id={`year${year}`}
-                    name={`year${year}`}
-                    min="0"
-                    placeholder="e.g. 40000"
-                    value={tuitionBreakdown[`year${year}` as keyof typeof tuitionBreakdown]}
-                    onChange={handleTuitionChange}
-                    onKeyDown={handleKeyDown}
-                  />
+                <div key={year}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <h4 style={{ margin: 0, color: '#334155' }}>Year {year}</h4>
+                    {year === '1' && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ fontSize: '0.8rem', color: '#334155' }}>Inflation %</span>
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                          <input
+                            type="number"
+                            placeholder="Inflation"
+                            title="Enter annual inflation rate to apply when copying to future years"
+                            value={inflationRate}
+                            onChange={(e) => setInflationRate(e.target.value)}
+                            style={{
+                              width: '90px',
+                              padding: '0.25rem 0.5rem 0.25rem 0.5rem',
+                              fontSize: '0.8rem',
+                              border: '1px solid #cbd5e1',
+                              borderRadius: '0.25rem',
+                              background: 'white',
+                              color: 'black'
+                            }}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleCopyYear1}
+                          style={{
+                            fontSize: '0.8rem',
+                            padding: '0.25rem 0.5rem',
+                            background: '#e2e8f0',
+                            border: 'none',
+                            borderRadius: '0.25rem',
+                            cursor: 'pointer',
+                            color: '#475569'
+                          }}
+                        >
+                          Copy to all ↓
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="input-row">
+                    <div className="input-group">
+                      <label htmlFor={`tuition${year}`}>Tuition + Other</label>
+                      <input
+                        type="number"
+                        id={`tuition${year}`}
+                        name={`tuition${year}`}
+                        min="0"
+                        placeholder="e.g. 40000"
+                        value={tuitionBreakdown[`tuition${year}` as keyof typeof tuitionBreakdown]}
+                        onChange={handleTuitionChange}
+                        onKeyDown={handleKeyDown}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label htmlFor={`roomBoard${year}`}>Room + Board</label>
+                      <input
+                        type="number"
+                        id={`roomBoard${year}`}
+                        name={`roomBoard${year}`}
+                        min="0"
+                        placeholder="e.g. 15000"
+                        value={tuitionBreakdown[`roomBoard${year}` as keyof typeof tuitionBreakdown]}
+                        onChange={handleTuitionChange}
+                        onKeyDown={handleKeyDown}
+                      />
+                    </div>
+                  </div>
                 </div>
               ))}
-              <button type="button" className="calculate-button" onClick={handleTuitionDone}>
-                Done
-              </button>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button type="button" className="calculate-button" onClick={handleTuitionDone} style={{ flex: 1 }}>
+                  Done
+                </button>
+                <button 
+                  type="button" 
+                  className="calculate-button" 
+                  onClick={handleTuitionClear}
+                  style={{ flex: 1, background: '#64748b' }}>
+                  Clear All
+                </button>
+              </div>
             </div>
           </div>
         </div>

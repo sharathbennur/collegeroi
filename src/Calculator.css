@@ -26,7 +26,7 @@
 .content-grid {
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
-  gap: 1.5rem;
+  gap: 1rem;
   padding: 2rem;
   flex: 1;
   overflow-y: auto;
@@ -127,7 +127,7 @@
   background: white;
   padding: 2rem;
   border-radius: 1rem;
-  width: 400px;
+  width: 600px;
   max-width: 90%;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
