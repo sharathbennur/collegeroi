@@ -72,7 +72,7 @@ describe('Calculator inputs', () => {
         <Calculator />
       </MemoryRouter>
     );
-    expect(screen.getByRole('button')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Calculate Payment Table/i })).toBeInTheDocument();
   });
 
   it('shows an error message when submitting an empty form', async () => {
@@ -188,7 +188,10 @@ describe('Calculator inputs', () => {
       </MemoryRouter>
     );
 
-    const select = screen.getByLabelText(/Auto-fill from Top 20 Colleges/i);
+    // Open the modal
+    await user.click(screen.getByRole('button', { name: /Auto-fill/i }));
+
+    const select = screen.getByLabelText(/Top 20 Colleges/i);
     const collegeInput = screen.getByLabelText(/College Name/i);
     const tuitionInput = screen.getByLabelText(/4-Year Tuition \(\$\)/i);
     const salaryInput = screen.getByLabelText(/Expected Starting Salary/i);
@@ -199,5 +202,31 @@ describe('Calculator inputs', () => {
     // (59000 + 21000) * 4 = 320000
     expect(tuitionInput).toHaveValue(320000);
     expect(salaryInput).toHaveValue(91000);
+  });
+
+  it('calculates monthly payment correctly', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    // Set Tuition to 100,000 (25k * 4)
+    await user.click(screen.getByLabelText(/4-Year Tuition \(\$\)/i));
+    const tuitionInputs = screen.getAllByLabelText(/Tuition \+ Other/i);
+    await user.type(tuitionInputs[0], '25000');
+    await user.click(screen.getByText(/Copy to all/i));
+    await user.click(screen.getByRole('button', { name: /Done/i }));
+
+    // Set Family Contribution to 10,000 (40k total deduction)
+    await user.type(screen.getByLabelText(/Annual Family Contribution/i), '10000');
+
+    // Set Loan Details: 5% for 10 years. Principal = 100k - 40k = 60k
+    await user.type(screen.getByLabelText(/Loan Interest/i), '5');
+    await user.type(screen.getByLabelText(/Loan Term/i), '10');
+
+    // Expected: $636 (approx 636.39 rounded down by Intl.NumberFormat with maxFractionDigits: 0)
+    expect(screen.getByText('$636')).toBeInTheDocument();
   });
 });

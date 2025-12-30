@@ -15,6 +15,7 @@ const Calculator = () => {
   const [error, setError] = useState('');
   const [invalidFields, setInvalidFields] = useState<string[]>([]);
   const [showTuitionModal, setShowTuitionModal] = useState(false);
+  const [showCollegeModal, setShowCollegeModal] = useState(false);
   const [tuitionBreakdown, setTuitionBreakdown] = useState({
     tuition1: '',
     roomBoard1: '',
@@ -158,6 +159,39 @@ const Calculator = () => {
     return Math.max(0, cost - contribution);
   };
 
+  const calculateMonthlyPayment = () => {
+    const principal = calculateLoanAmount();
+    const annualInterest = parseFloat(formData.loanInterest) || 0;
+    const years = parseFloat(formData.loanTerm) || 0;
+
+    if (principal <= 0 || years <= 0) return 0;
+
+    const numberOfPayments = years * 12;
+
+    if (annualInterest === 0) {
+      return principal / numberOfPayments;
+    }
+
+    const monthlyRate = annualInterest / 100 / 12;
+    const payment = (principal * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
+    
+    return payment;
+  };
+
+  const calculateTotalInterest = () => {
+    const monthlyPayment = calculateMonthlyPayment();
+    const years = parseFloat(formData.loanTerm) || 0;
+    const principal = calculateLoanAmount();
+
+    if (monthlyPayment <= 0 || years <= 0) return 0;
+
+    return Math.max(0, (monthlyPayment * years * 12) - principal);
+  };
+
+  const calculateTotalCostOfCollege = () => {
+    return calculateFourYearCost() + calculateTotalInterest();
+  };
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -181,17 +215,13 @@ const Calculator = () => {
       
       <div className="content-grid">
         <div className="column left-col">
-          <h3>Inputs</h3>
+          <div className="section-header">
+            <h3>Inputs</h3>
+            <button type="button" className="secondary-button" onClick={() => setShowCollegeModal(true)}>
+              Auto-fill
+            </button>
+          </div>
           <form className="input-form" onSubmit={handleSubmit}>
-            <div className="input-group">
-              <label htmlFor="collegeSelect">Auto-fill from Top 20 Colleges</label>
-              <select id="collegeSelect" onChange={handleCollegeSelect} defaultValue="">
-                <option value="" disabled>Select a college...</option>
-                {colleges.map(college => (
-                  <option key={college.rank} value={college.name}>{college.name}</option>
-                ))}
-              </select>
-            </div>
             <div className="input-group">
               <label htmlFor="collegeName">College Name</label>
               <input
@@ -279,19 +309,32 @@ const Calculator = () => {
           </form>
         </div>
         <div className="column center-col">
-          <h3>Results & Tables</h3>
-          <div className="results-grid">
-            <div className="result-card">
+          <h3>Costs & Interest</h3>
+          <div className="result-card">
+            <h4 style={{ margin: 0, color: '#334155' }}>Summary</h4>
+            <div className="result-item">
               <h4>4-Year Cost</h4>
               <div className="value">{formatCurrency(calculateFourYearCost())}</div>
             </div>
-            <div className="result-card">
+            <div className="result-item">
               <h4>4-Year Family Contribution</h4>
               <div className="value">{formatCurrency(calculateFourYearFamilyContribution())}</div>
             </div>
-            <div className="result-card">
+            <div className="result-item">
               <h4>Loan Amount</h4>
               <div className="value">{formatCurrency(calculateLoanAmount())}</div>
+            </div>
+            <div className="result-item">
+              <h4>Monthly Payment</h4>
+              <div className="value">{formatCurrency(calculateMonthlyPayment())}</div>
+            </div>
+            <div className="result-item">
+              <h4>Total Interest Paid</h4>
+              <div className="value">{formatCurrency(calculateTotalInterest())}</div>
+            </div>
+            <div className="result-item">
+              <h4>Total Cost of College</h4>
+              <div className="value">{formatCurrency(calculateTotalCostOfCollege())}</div>
             </div>
           </div>
         </div>
@@ -391,6 +434,26 @@ const Calculator = () => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showCollegeModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>Select a College</h3>
+            <div className="input-group">
+              <label htmlFor="collegeSelectModal">Top 20 Colleges</label>
+              <select id="collegeSelectModal" onChange={(e) => { handleCollegeSelect(e); setShowCollegeModal(false); }} defaultValue="">
+                <option value="" disabled>Select a college...</option>
+                {colleges.map(college => (
+                  <option key={college.rank} value={college.name}>{college.name}</option>
+                ))}
+              </select>
+            </div>
+            <button className="calculate-button" onClick={() => setShowCollegeModal(false)} style={{ marginTop: '1rem', background: '#64748b' }}>
+              Cancel
+            </button>
           </div>
         </div>
       )}
