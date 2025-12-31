@@ -200,8 +200,12 @@ describe('Calculator inputs', () => {
     const tuitionInput = screen.getByLabelText(/4-Year Tuition \(\$\)/i);
 
     expect(collegeInput).toHaveValue('Harvard University');
-    // (59000 + 21000) * 4 = 320000
-    expect(tuitionInput).toHaveValue(320000);
+    // Year 1: 80,000
+    // Year 2: 82,400 (3% inflation)
+    // Year 3: 84,872
+    // Year 4: 87,418
+    // Total: 334,690
+    expect(tuitionInput).toHaveValue(334690);
 
     await user.click(screen.getByRole('button', { name: /Payments/i }));
     const salaryInput = screen.getByLabelText(/Expected Annual Starting Salary/i);

@@ -133,9 +133,20 @@ const Calculator = () => {
   };
 
   const handleSuggestionClick = (college: typeof colleges[0]) => {
-      const annualTuitionStr = college.annualTuition.toString();
-      const annualRoomBoardStr = college.annualRoomBoard.toString();
-      const totalTuition = (college.annualTuition + college.annualRoomBoard) * 4;
+      const rate = 0.03;
+      const t1 = college.annualTuition;
+      const rb1 = college.annualRoomBoard;
+
+      const calculateYear = (val: number, yearIndex: number) => Math.round(val * Math.pow(1 + rate, yearIndex));
+
+      const t2 = calculateYear(t1, 1);
+      const rb2 = calculateYear(rb1, 1);
+      const t3 = calculateYear(t1, 2);
+      const rb3 = calculateYear(rb1, 2);
+      const t4 = calculateYear(t1, 3);
+      const rb4 = calculateYear(rb1, 3);
+
+      const totalTuition = (t1 + rb1) + (t2 + rb2) + (t3 + rb3) + (t4 + rb4);
 
       setFormData(prev => ({
         ...prev,
@@ -145,11 +156,13 @@ const Calculator = () => {
       }));
 
       setTuitionBreakdown({
-        tuition1: annualTuitionStr, roomBoard1: annualRoomBoardStr,
-        tuition2: annualTuitionStr, roomBoard2: annualRoomBoardStr,
-        tuition3: annualTuitionStr, roomBoard3: annualRoomBoardStr,
-        tuition4: annualTuitionStr, roomBoard4: annualRoomBoardStr
+        tuition1: t1.toString(), roomBoard1: rb1.toString(),
+        tuition2: t2.toString(), roomBoard2: rb2.toString(),
+        tuition3: t3.toString(), roomBoard3: rb3.toString(),
+        tuition4: t4.toString(), roomBoard4: rb4.toString()
       });
+      
+      setInflationRate('3');
 
       setSuggestions([]);
       setShowSuggestions(false);
