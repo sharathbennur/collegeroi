@@ -634,9 +634,18 @@ const Calculator = () => {
     <div className="calculator-container">
       <nav className="navbar">
         <Link to="/" className="brand-name">CollegeROI 🚀</Link>
+        {!showInstructions && (
+          <button 
+            onClick={() => setShowInstructions(true)}
+            className="secondary-button"
+            style={{ fontSize: '0.75rem', padding: '0.25rem 0.75rem', opacity: 0.8, position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}
+          >
+            Show Instructions ▾
+          </button>
+        )}
       </nav>
 
-      {showInstructions ? (
+      <div className={`instructions-panel ${showInstructions ? 'expanded' : 'collapsed'}`}>
         <div className="top-section" style={{ position: 'relative' }}>
           <button
             onClick={() => setShowInstructions(false)}
@@ -674,17 +683,7 @@ const Calculator = () => {
             </ol>
           </div>
         </div>
-      ) : (
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
-          <button 
-            onClick={() => setShowInstructions(true)}
-            className="secondary-button"
-            style={{ fontSize: '0.75rem', padding: '0.25rem 0.75rem', opacity: 0.8 }}
-          >
-            Show Instructions ▾
-          </button>
-        </div>
-      )}
+      </div>
       
       <div className="content-grid" style={{ gridTemplateColumns: getGridTemplateColumns() }}>
         {showLeftPanel && (

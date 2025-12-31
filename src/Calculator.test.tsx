@@ -769,4 +769,24 @@ describe('Calculator inputs', () => {
 
     expect(screen.getByLabelText(/4-Year Financial Aid \(\$\)/i)).toHaveValue(20000);
   });
+
+  it('resets financial aid values to 0 when Clear All is clicked in the modal', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    await user.click(screen.getByLabelText(/4-Year Financial Aid \(\$\)/i));
+
+    const aidInputs = screen.getAllByLabelText(/Financial Aid \(\$\)/i);
+    await user.type(aidInputs[0], '5000');
+    
+    await user.click(screen.getByRole('button', { name: /Clear All/i }));
+    expect(aidInputs[0]).toHaveValue(null);
+
+    await user.click(screen.getByRole('button', { name: /Done/i }));
+    expect(screen.getByLabelText(/4-Year Financial Aid \(\$\)/i)).toHaveValue(0);
+  });
 });
