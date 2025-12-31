@@ -537,4 +537,41 @@ describe('Calculator inputs', () => {
     // Total Monthly Tax: 1530 + 500 + 150 + 620 + 145 = 2945
     expect(screen.getByText('$2,945')).toBeInTheDocument();
   });
+
+  it('calculates net monthly cash flow correctly', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    // 1. Set up Loan ($60k, 5%, 10yr -> ~$636/mo)
+    await user.click(screen.getByLabelText(/4-Year Tuition \(\$\)/i));
+    const tuitionInputs = screen.getAllByLabelText(/Tuition \+ Other/i);
+    await user.type(tuitionInputs[0], '25000');
+    await user.click(screen.getByText(/Copy to all/i));
+    await user.click(screen.getByRole('button', { name: /Done/i }));
+
+    await user.type(screen.getByLabelText(/Annual Family Contribution/i), '10000');
+
+    await user.click(screen.getByRole('button', { name: /Loans/i }));
+    await user.type(screen.getByLabelText(/Loan Interest/i), '5');
+    await user.type(screen.getByLabelText(/Loan Term/i), '10');
+
+    // 2. Set up Income ($60k/yr -> $5k/mo)
+    await user.click(screen.getByRole('button', { name: /Payments/i }));
+    await user.type(screen.getByLabelText(/Expected Annual Starting Salary/i), '60000');
+
+    // 3. Set up Expenses ($1000/mo)
+    await user.click(screen.getByLabelText(/Monthly Expenses \(\$\)/i));
+    await user.click(screen.getByRole('button', { name: /Clear All/i }));
+    await user.type(screen.getByLabelText(/Rent/i), '1000');
+    await user.click(screen.getByRole('button', { name: /Done/i }));
+
+    // 4. Verify Net Cash Flow
+    // Take-home: $3,767.50 (based on default 24.65% tax on $5k) - Expenses: $1,000 - Loan: ~$636.39 = ~$2,131.11
+    expect(screen.getByText('Net Monthly Cash Flow')).toBeInTheDocument();
+    expect(screen.getByText('$2,131')).toBeInTheDocument();
+  });
 });

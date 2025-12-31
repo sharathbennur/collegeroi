@@ -33,10 +33,24 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-.instructions p {
+.instructions h4 {
+  margin: 0 0 0.5rem 0;
+  color: #1e293b;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.instructions ol {
   margin: 0;
+  padding-left: 1.2rem;
   color: #334155;
-  line-height: 1.5;
+}
+
+.instructions li {
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+  font-size: 0.95rem;
 }
 
 .content-grid {
@@ -429,4 +443,31 @@
 .tooltip-table th, .tooltip-table td {
   padding: 2px 4px;
   border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.ledger-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.ledger-table th {
+  text-align: left;
+  color: #64748b;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ledger-table td {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+}
+
+.ledger-table tr:last-child td {
+  border-bottom: none;
 }

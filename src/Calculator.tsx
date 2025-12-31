@@ -439,6 +439,10 @@ const Calculator = () => {
     return annualSalary > 0 ? ((tax / annualSalary) * 100).toFixed(1) : '0.0';
   };
 
+  const calculateTakeHomeAfterLoan = () => {
+    return getMonthlyTakeHome() - calculateMonthlyPayment();
+  };
+
   const calculateNetMonthlyCashFlow = () => {
     const takeHome = getMonthlyTakeHome();
     const expenses = parseFloat(formData.expenses) || 0;
@@ -453,10 +457,18 @@ const Calculator = () => {
       </nav>
 
       <div className="instructions">
-        <p>
-          <strong>How to use:</strong> Enter your college details below. Click the <strong>4-Year Tuition</strong> field to enter a yearly breakdown of costs. 
-          Use the inflation tool to project future costs. Finally, click <strong>Calculate Payment Table</strong> to see your estimated loan repayment plan.
-        </p>
+        <h4>How to use</h4>
+        <ol>
+          <li>
+            <strong>Costs:</strong> Enter a yearly breakdown of college costs or use <strong>Auto-fill</strong> for popular colleges.
+          </li>
+          <li>
+            <strong>Loans:</strong> Input your loan interest rate and term. View details with <strong>Show Payment Schedule</strong>.
+          </li>
+          <li>
+            <strong>Payments:</strong> Input expected salary and expenses to calculate your net monthly cash flow.
+          </li>
+        </ol>
       </div>
       
       <div className="content-grid">
@@ -617,9 +629,6 @@ const Calculator = () => {
                     />
                   </div>
                   {error && <div className="error-message">{error}</div>}
-                  <button type="submit" className="calculate-button">
-                    Calculate Payment Table
-                  </button>
                 </div>
               )}
             </div>
@@ -672,12 +681,42 @@ const Calculator = () => {
               <h4>Total Interest Paid</h4>
               <div className="value">{formatCurrency(calculateTotalInterest())}</div>
             </div>
-            <div className="result-item">
-              <h4>Net Monthly Cash Flow</h4>
-              <div className="value" style={{ color: calculateNetMonthlyCashFlow() >= 0 ? '#10b981' : '#ef4444' }}>
-                {formatCurrency(calculateNetMonthlyCashFlow())}
-              </div>
-            </div>
+          </div>
+          <div className="result-card">
+            <h4 style={{ margin: 0, color: '#334155' }}>Cash Flow</h4>
+            <table className="ledger-table">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th style={{ textAlign: 'right' }}>Amount</th>
+                  <th style={{ textAlign: 'right' }}>Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Monthly Salary</td>
+                  <td style={{ textAlign: 'right', color: '#10b981' }}>{formatCurrency(getMonthlyGross())}</td>
+                  <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(getMonthlyGross())}</td>
+                </tr>
+                <tr>
+                  <td>Monthly Taxes</td>
+                  <td style={{ textAlign: 'right', color: '#ef4444' }}>-{formatCurrency(getMonthlyTax())}</td>
+                  <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(getMonthlyTakeHome())}</td>
+                </tr>
+                <tr>
+                  <td>Loan Payment</td>
+                  <td style={{ textAlign: 'right', color: '#ef4444' }}>-{formatCurrency(calculateMonthlyPayment())}</td>
+                  <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(calculateTakeHomeAfterLoan())}</td>
+                </tr>
+                <tr>
+                  <td>Monthly Expenses</td>
+                  <td style={{ textAlign: 'right', color: '#ef4444' }}>-{formatCurrency(parseFloat(formData.expenses) || 0)}</td>
+                  <td style={{ textAlign: 'right', fontWeight: 'bold', color: calculateNetMonthlyCashFlow() >= 0 ? '#10b981' : '#ef4444' }}>
+                    {formatCurrency(calculateNetMonthlyCashFlow())}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
           {showSchedule && (
