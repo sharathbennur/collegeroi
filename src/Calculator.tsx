@@ -14,9 +14,29 @@ interface PaymentScheduleRow {
 const helpTopics = [
   {
     id: 'data-guide',
-    title: 'How to Find College-specific Data',
+    title: 'How to search for college specific data',
     content: 'Unsure what numbers to enter? Try these Google searches:\n\n• For College Costs: Search "[College Name] cost of attendance". Look for the official .edu financial aid page. Use the "Total Cost" or "Sticker Price" which includes tuition, fees, room, and board.\n\n• For Salary: Search "[Major] entry level salary" or "[College Name] [Major] starting salary". Websites like Glassdoor, Payscale, or the US Bureau of Labor Statistics are good sources.'
-  },  {
+  },
+  {
+    id: 'ai-guide',
+    title: 'Using AI for Research',
+    content: (
+      <>
+        You can use AI tools to quickly gather estimates:
+        <br /><br />
+        • <strong>Prompt:</strong> "What is the total cost of attendance for [College Name] for the 2024-2025 academic year including tuition, room, and board?"
+        <br /><br />
+        • <strong>Prompt:</strong> "What is the median entry-level salary for a [Major] graduate from [College Name]?"
+        <br /><br />
+        Try these tools:
+        <br />
+        • <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer" style={{ color: '#6366f1' }}>ChatGPT</a>
+        <br />
+        • <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer" style={{ color: '#6366f1' }}>Gemini</a>
+      </>
+    )
+  },
+  {
     id: 'tuition',
     title: 'Tuition Breakdown',
     content: 'Helps you enter the yearly tuition and room & board costs for each of the 4 years. You can also use the "Auto-fill" feature on the main form to populate these values for popular colleges. Use the Inflation % feature at the top to automatically calculate future year costs based on the first year values and inflation rates.'
@@ -566,7 +586,7 @@ const Calculator = () => {
 
   const filteredTopics = helpTopics.filter(topic => 
     topic.title.toLowerCase().includes(guidanceSearch.toLowerCase()) ||
-    topic.content.toLowerCase().includes(guidanceSearch.toLowerCase())
+    (typeof topic.content === 'string' && topic.content.toLowerCase().includes(guidanceSearch.toLowerCase()))
   );
 
   return (
@@ -793,7 +813,7 @@ const Calculator = () => {
                   </div>
                   {error && <div className="error-message">{error}</div>}
                   <button type="submit" className="calculate-button" style={{ width: '100%' }}>
-                    Calculate Payment Table
+                    Add to Comparison
                   </button>
                 </div>
               )}
@@ -994,13 +1014,26 @@ const Calculator = () => {
             <h3>Guidance</h3>
             {!selectedTopic ? (
               <>
-                <input
-                  type="text"
-                  placeholder="Search help topics..."
-                  value={guidanceSearch}
-                  onChange={(e) => setGuidanceSearch(e.target.value)}
-                  className="guidance-search"
-                />
+                <div style={{ position: 'relative', marginBottom: '1rem' }}>
+                  <input
+                    type="text"
+                    placeholder="Search help topics..."
+                    value={guidanceSearch}
+                    onChange={(e) => setGuidanceSearch(e.target.value)}
+                    className="guidance-search"
+                    style={{ marginBottom: 0, paddingRight: '2.5rem' }}
+                  />
+                  {guidanceSearch && (
+                    <button
+                      onClick={() => setGuidanceSearch('')}
+                      className="clear-search-button"
+                      aria-label="Clear search"
+                      title="Clear search"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                  )}
+                </div>
                 <ul className="topic-list">
                   {filteredTopics.map(topic => (
                     <li key={topic.id} className="topic-item" onClick={() => setSelectedTopic(topic)}>
