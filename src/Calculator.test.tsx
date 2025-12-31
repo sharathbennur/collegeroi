@@ -750,4 +750,23 @@ describe('Calculator inputs', () => {
 
     expect(screen.getByText(/Why use CollegeROI/i)).toBeInTheDocument();
   });
+
+  it('calculates total financial aid correctly from the new financial aid modal', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    await user.click(screen.getByLabelText(/4-Year Financial Aid \(\$\)/i));
+
+    const aidInputs = screen.getAllByLabelText(/Financial Aid \(\$\)/i);
+    await user.type(aidInputs[0], '5000');
+    await user.click(screen.getByText(/Copy to all/i));
+    
+    await user.click(screen.getByRole('button', { name: /Done/i }));
+
+    expect(screen.getByLabelText(/4-Year Financial Aid \(\$\)/i)).toHaveValue(20000);
+  });
 });

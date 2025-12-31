@@ -87,6 +87,7 @@ const Calculator = () => {
   const [formData, setFormData] = useState({
     collegeName: '',
     tuition: '',
+    financialAid: '',
     familyContribution: '',
     loanInterest: '',
     loanTerm: '',
@@ -96,17 +97,22 @@ const Calculator = () => {
   const [error, setError] = useState('');
   const [invalidFields, setInvalidFields] = useState<string[]>([]);
   const [showTuitionModal, setShowTuitionModal] = useState(false);
+  const [showFinancialAidModal, setShowFinancialAidModal] = useState(false);
   const [suggestions, setSuggestions] = useState<typeof colleges>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [tuitionBreakdown, setTuitionBreakdown] = useState({
     tuition1: '',
     roomBoard1: '',
+    financialAid1: '',
     tuition2: '',
     roomBoard2: '',
+    financialAid2: '',
     tuition3: '',
     roomBoard3: '',
+    financialAid3: '',
     tuition4: '',
-    roomBoard4: ''
+    roomBoard4: '',
+    financialAid4: ''
   });
   const [inflationRate, setInflationRate] = useState('');
   const [sections, setSections] = useState({
@@ -237,9 +243,13 @@ const Calculator = () => {
 
       setTuitionBreakdown({
         tuition1: t1.toString(), roomBoard1: rb1.toString(),
+        financialAid1: '',
         tuition2: t2.toString(), roomBoard2: rb2.toString(),
+        financialAid2: '',
         tuition3: t3.toString(), roomBoard3: rb3.toString(),
-        tuition4: t4.toString(), roomBoard4: rb4.toString()
+        financialAid3: '',
+        tuition4: t4.toString(), roomBoard4: rb4.toString(),
+        financialAid4: '',
       });
       
       setInflationRate('3');
@@ -265,8 +275,12 @@ const Calculator = () => {
   };
 
   const handleTuitionDone = () => {
-    const total = Object.values(tuitionBreakdown).reduce((acc, val) => acc + (parseFloat(val) || 0), 0);
-    setFormData(prev => ({ ...prev, tuition: total.toString() }));
+    let totalCost = 0;
+    for (let i = 1; i <= 4; i++) {
+      totalCost += (parseFloat(tuitionBreakdown[`tuition${i}` as keyof typeof tuitionBreakdown] as string) || 0);
+      totalCost += (parseFloat(tuitionBreakdown[`roomBoard${i}` as keyof typeof tuitionBreakdown] as string) || 0);
+    }
+    setFormData(prev => ({ ...prev, tuition: totalCost.toString() }));
     setShowTuitionModal(false);
     
     if (invalidFields.includes('tuition')) {
@@ -277,7 +291,8 @@ const Calculator = () => {
   };
 
   const handleTuitionClear = () => {
-    setTuitionBreakdown({
+    setTuitionBreakdown(prev => ({
+      ...prev,
       tuition1: '',
       roomBoard1: '',
       tuition2: '',
@@ -286,7 +301,23 @@ const Calculator = () => {
       roomBoard3: '',
       tuition4: '',
       roomBoard4: ''
-    });
+    }));
+  };
+
+  const handleFinancialAidDone = () => {
+    let totalAid = 0;
+    for (let i = 1; i <= 4; i++) {
+      totalAid += (parseFloat(tuitionBreakdown[`financialAid${i}` as keyof typeof tuitionBreakdown] as string) || 0);
+    }
+    setFormData(prev => ({ ...prev, financialAid: totalAid.toString() }));
+    setShowFinancialAidModal(false);
+  };
+
+  const handleFinancialAidClear = () => {
+    setTuitionBreakdown(prev => ({
+      ...prev,
+      financialAid1: '', financialAid2: '', financialAid3: '', financialAid4: ''
+    }));
   };
 
   const handleCopyYear1 = () => {
@@ -306,6 +337,15 @@ const Calculator = () => {
       roomBoard3: calculateNext(prev.roomBoard1, 2),
       tuition4: calculateNext(prev.tuition1, 3),
       roomBoard4: calculateNext(prev.roomBoard1, 3),
+    }));
+  };
+
+  const handleCopyFinancialAidYear1 = () => {
+    setTuitionBreakdown(prev => ({
+      ...prev,
+      financialAid2: prev.financialAid1,
+      financialAid3: prev.financialAid1,
+      financialAid4: prev.financialAid1,
     }));
   };
 
@@ -441,8 +481,9 @@ const Calculator = () => {
 
   const calculateLoanAmount = () => {
     const cost = calculateFourYearCost();
+    const aid = parseFloat(formData.financialAid) || 0;
     const contribution = calculateFourYearFamilyContribution();
-    return Math.max(0, cost - contribution);
+    return Math.max(0, cost - aid - contribution);
   };
 
   const calculateMonthlyPayment = () => {
@@ -622,7 +663,7 @@ const Calculator = () => {
             <h4>How to use</h4>
             <ol>
               <li>
-                <strong>Costs:</strong> Enter a yearly breakdown of college costs or use <strong>Auto-fill</strong> for popular colleges.
+                <strong>Costs:</strong> Enter a yearly breakdown of college costs.
               </li>
               <li>
                 <strong>Loans:</strong> Input your loan interest rate and term. View details with <strong>Show Payment Schedule</strong>.
@@ -694,6 +735,19 @@ const Calculator = () => {
                       readOnly
                       onClick={() => setShowTuitionModal(true)}
                       className={invalidFields.includes('tuition') ? 'error-input' : ''}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label htmlFor="financialAid">4-Year Financial Aid ($)</label>
+                    <input
+                      type="number"
+                      id="financialAid"
+                      name="financialAid"
+                      placeholder="Click to enter financial aid"
+                      value={formData.financialAid}
+                      readOnly
+                      onClick={() => setShowFinancialAidModal(true)}
                     />
                   </div>
 
@@ -865,6 +919,10 @@ const Calculator = () => {
               <div className="value">{formatCurrency(calculateFourYearCost())}</div>
             </div>
             <div className="result-item">
+              <h4>4-Year Financial Aid</h4>
+              <div className="value" style={{ color: '#10b981' }}>{formatCurrency(parseFloat(formData.financialAid) || 0)}</div>
+            </div>
+            <div className="result-item">
               <h4>4-Year Family Contribution</h4>
               <div className="value">{formatCurrency(calculateFourYearFamilyContribution())}</div>
             </div>
@@ -874,7 +932,7 @@ const Calculator = () => {
             </div>
           </div>
           <div className="result-card">
-            <h4 style={{ margin: 0, color: '#334155' }}>Loan Details</h4>
+            <h4 style={{ margin: 0, color: '#334155' }}>Loan Summary</h4>
             <div className="result-item">
               <h4>Loan Amount</h4>
               <div className="value">{formatCurrency(calculateLoanAmount())}</div>
@@ -952,7 +1010,7 @@ const Calculator = () => {
                 onClick={() => setScheduleOpen(!scheduleOpen)}
                 style={{ borderRadius: 0, borderTop: 'none', borderLeft: 'none', borderRight: 'none' }}
               >
-                <span>Payment Schedule</span>
+                <span>Estimated Payment Schedule</span>
                 <span>{scheduleOpen ? '−' : '+'}</span>
               </button>
               {scheduleOpen && (
@@ -1060,7 +1118,7 @@ const Calculator = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <h3>4-Year Cost Breakdown</h3>
-            <div className="input-form">
+            <div className="input-form" style={{ maxWidth: '100%', overflowX: 'auto' }}>
               {['1', '2', '3', '4'].map((year) => (
                 <div key={year}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
@@ -1142,6 +1200,65 @@ const Calculator = () => {
                   type="button" 
                   className="calculate-button" 
                   onClick={handleTuitionClear}
+                  style={{ flex: 1, background: '#64748b' }}>
+                  Clear All
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showFinancialAidModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3>4-Year Financial Aid Breakdown</h3>
+            <div className="input-form" style={{ maxWidth: '100%', overflowX: 'auto' }}>
+              {['1', '2', '3', '4'].map((year) => (
+                <div key={year}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <h4 style={{ margin: 0, color: '#334155' }}>Year {year}</h4>
+                    {year === '1' && (
+                      <button
+                        type="button"
+                        onClick={handleCopyFinancialAidYear1}
+                        style={{
+                          fontSize: '0.8rem',
+                          padding: '0.25rem 0.5rem',
+                          background: '#e2e8f0',
+                          border: 'none',
+                          borderRadius: '0.25rem',
+                          cursor: 'pointer',
+                          color: '#475569'
+                        }}
+                      >
+                        Copy to all ↓
+                      </button>
+                    )}
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor={`financialAid${year}`}>Financial Aid ($)</label>
+                    <input
+                      type="number"
+                      id={`financialAid${year}`}
+                      name={`financialAid${year}`}
+                      min="0"
+                      placeholder="e.g. 5000"
+                      value={tuitionBreakdown[`financialAid${year}` as keyof typeof tuitionBreakdown]}
+                      onChange={handleTuitionChange}
+                      onKeyDown={handleKeyDown}
+                    />
+                  </div>
+                </div>
+              ))}
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <button type="button" className="calculate-button" onClick={handleFinancialAidDone} style={{ flex: 1 }}>
+                  Done
+                </button>
+                <button 
+                  type="button" 
+                  className="calculate-button" 
+                  onClick={handleFinancialAidClear}
                   style={{ flex: 1, background: '#64748b' }}>
                   Clear All
                 </button>
