@@ -11,6 +11,18 @@ interface PaymentScheduleRow {
   balance: number;
 }
 
+interface SavedCollege {
+  id: string;
+  name: string;
+  data: {
+    formData: any;
+    tuitionBreakdown: any;
+    expensesBreakdown: any;
+    taxRates: any;
+    inflationRate: string;
+  };
+}
+
 const helpTopics = [
   {
     id: 'data-guide',
@@ -150,6 +162,8 @@ const Calculator = () => {
   const [showInstructions, setShowInstructions] = useState(true);
   const [guidanceSearch, setGuidanceSearch] = useState('');
   const [selectedTopic, setSelectedTopic] = useState<typeof helpTopics[0] | null>(null);
+  const [comparedColleges, setComparedColleges] = useState<SavedCollege[]>([]);
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
 
   useEffect(() => {
     document.title = 'CollegeROI - Calculator';
@@ -168,6 +182,7 @@ const Calculator = () => {
         if (parsedState.scheduleOpen !== undefined) setScheduleOpen(parsedState.scheduleOpen);
         if (parsedState.expandedYears) setExpandedYears(parsedState.expandedYears);
         if (parsedState.showInstructions !== undefined) setShowInstructions(parsedState.showInstructions);
+        if (parsedState.comparedColleges) setComparedColleges(parsedState.comparedColleges);
       } catch (error) {
         console.error('Error loading saved state:', error);
       }
@@ -380,25 +395,66 @@ const Calculator = () => {
     });
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleAddToCompare = (e: FormEvent<HTMLFormElement> | React.MouseEvent) => {
     e.preventDefault();
 
-    const { collegeName, tuition, familyContribution, loanInterest, loanTerm, salary } = formData;
-    const missingFields = [];
-    if (!collegeName) missingFields.push('collegeName');
-    if (!tuition) missingFields.push('tuition');
-    if (!familyContribution) missingFields.push('familyContribution');
-    if (!loanInterest) missingFields.push('loanInterest');
-    if (!loanTerm) missingFields.push('loanTerm');
-    if (!salary) missingFields.push('salary');
-
-    if (missingFields.length > 0) {
-      setError('Please fill in all fields with valid data');
-      setInvalidFields(missingFields);
+    if (!formData.collegeName) {
+      setError('Please enter a college name to add to comparison');
+      setInvalidFields(['collegeName']);
       return;
     }
 
-    console.log('Form submitted:', formData);
+    if (comparedColleges.length >= 5) {
+      alert('You can only compare up to 5 colleges. Please remove one to add another.');
+      return;
+    }
+
+    const newCollege: SavedCollege = {
+      id: Date.now().toString(),
+      name: formData.collegeName,
+      data: {
+        formData: { ...formData },
+        tuitionBreakdown: { ...tuitionBreakdown },
+        expensesBreakdown: { ...expensesBreakdown },
+        taxRates: { ...taxRates },
+        inflationRate
+      }
+    };
+
+    // Check if college already exists (by name) and update it, or add new
+    let updatedColleges;
+    const existingIndex = comparedColleges.findIndex(c => c.name.toLowerCase() === newCollege.name.toLowerCase());
+    
+    if (existingIndex >= 0) {
+      if (!window.confirm(`${newCollege.name} is already in your comparison list. Do you want to update it with current data?`)) {
+        return;
+      }
+      updatedColleges = [...comparedColleges];
+      updatedColleges[existingIndex] = newCollege;
+    } else {
+      updatedColleges = [...comparedColleges, newCollege];
+    }
+
+    setComparedColleges(updatedColleges);
+    saveStateToLocalStorage(updatedColleges);
+    alert(`${newCollege.name} added to comparison!`);
+  };
+
+  const handleLoadComparison = (college: SavedCollege) => {
+    if (window.confirm(`Load data for ${college.name}? Unsaved changes to current inputs will be lost.`)) {
+      setFormData(college.data.formData);
+      setTuitionBreakdown(college.data.tuitionBreakdown);
+      setExpensesBreakdown(college.data.expensesBreakdown);
+      setTaxRates(college.data.taxRates);
+      setInflationRate(college.data.inflationRate);
+    }
+  };
+
+  const handleRemoveComparison = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    const updatedColleges = comparedColleges.filter(c => c.id !== id);
+    setComparedColleges(updatedColleges);
+    saveStateToLocalStorage(updatedColleges);
   };
 
   const handleShowSchedule = () => {
@@ -441,7 +497,7 @@ const Calculator = () => {
     }, 100);
   };
 
-  const handleSave = () => {
+  const saveStateToLocalStorage = (collegesToSave = comparedColleges) => {
     const state = {
       formData,
       tuitionBreakdown,
@@ -453,9 +509,14 @@ const Calculator = () => {
       showSchedule,
       scheduleOpen,
       expandedYears,
-      showInstructions
+      showInstructions,
+      comparedColleges: collegesToSave
     };
     localStorage.setItem('collegeRoiCalcState', JSON.stringify(state));
+  };
+
+  const handleSave = () => {
+    saveStateToLocalStorage();
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2000);
   };
@@ -618,6 +679,58 @@ const Calculator = () => {
     return calculateTenYear401k() + calculateTenYearNetFlow();
   };
 
+  const calculateMetrics = (data: SavedCollege['data']) => {
+    const { formData, expensesBreakdown, taxRates } = data;
+    
+    const fourYearCost = parseFloat(formData.tuition) || 0;
+    const fourYearAid = parseFloat(formData.financialAid) || 0;
+    const fourYearFamily = (parseFloat(formData.familyContribution) || 0) * 4;
+    const loanAmount = Math.max(0, fourYearCost - fourYearAid - fourYearFamily);
+    
+    const annualInterest = parseFloat(formData.loanInterest) || 0;
+    const years = parseFloat(formData.loanTerm) || 0;
+    
+    let monthlyPayment = 0;
+    if (loanAmount > 0 && years > 0) {
+      if (annualInterest === 0) {
+        monthlyPayment = loanAmount / (years * 12);
+      } else {
+        const monthlyRate = annualInterest / 100 / 12;
+        const numberOfPayments = years * 12;
+        monthlyPayment = (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
+      }
+    }
+    
+    const totalInterest = Math.max(0, (monthlyPayment * years * 12) - loanAmount);
+    const totalCost = fourYearCost + totalInterest;
+    
+    const monthlyGross = (parseFloat(formData.salary) || 0) / 12;
+    const totalTaxRate = Object.values(taxRates).reduce((acc: number, val: any) => acc + (parseFloat(val) || 0), 0);
+    const monthlyTax = monthlyGross * (totalTaxRate / 100);
+    const monthlyTakeHome = monthlyGross - monthlyTax;
+    
+    const monthlyExpenses = parseFloat(formData.expenses) || 0;
+    const netMonthlyCashFlow = monthlyTakeHome - monthlyExpenses - monthlyPayment;
+    
+    const monthly401k = parseFloat(expensesBreakdown.contribution401k) || 0;
+    const tenYear401k = monthly401k * 12 * 10;
+    const tenYearNetFlow = netMonthlyCashFlow * 12 * 10;
+    const totalSavings = tenYear401k + tenYearNetFlow;
+
+    return {
+        fourYearCost,
+        fourYearAid,
+        fourYearFamily,
+        totalCost,
+        loanAmount,
+        monthlyPayment,
+        totalInterest,
+        monthlyTakeHome,
+        netMonthlyCashFlow,
+        totalSavings
+    };
+  };
+
   const getGridTemplateColumns = () => {
     if (showLeftPanel && showRightPanel) return '1fr 2fr 1fr';
     if (showLeftPanel && !showRightPanel) return '1fr 3fr';
@@ -642,6 +755,30 @@ const Calculator = () => {
           >
             Show Instructions ▾
           </button>
+        )}
+        
+        {comparedColleges.length > 0 && (
+          <div className="comparison-carousel">
+            <button 
+              className="secondary-button" 
+              style={{ fontSize: '0.75rem', padding: '0.25rem 0.75rem', marginRight: '0.5rem' }}
+              onClick={() => setShowComparisonModal(true)}
+            >
+              Compare All
+            </button>
+            {comparedColleges.map(college => (
+              <div key={college.id} className="comparison-item" onClick={() => handleLoadComparison(college)} title="Click to load data">
+                <span>{college.name}</span>
+                <button 
+                  className="comparison-remove" 
+                  onClick={(e) => handleRemoveComparison(e, college.id)}
+                  title="Remove from comparison"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+            ))}
+          </div>
         )}
       </nav>
 
@@ -672,13 +809,13 @@ const Calculator = () => {
             <h4>How to use</h4>
             <ol>
               <li>
-                <strong>Costs:</strong> Enter a yearly breakdown of college costs.
+                <strong>Inputs:</strong> Search for a college or enter data manually from your research. Click on Tuition, Financial Aid, Taxes, and Expenses fields to enter detailed breakdowns.
               </li>
               <li>
-                <strong>Loans:</strong> Input your loan interest rate and term. View details with <strong>Show Payment Schedule</strong>.
+                <strong>Analyze:</strong> Review the estimated cost, loan, and cash flow projections in the center column.
               </li>
               <li>
-                <strong>Payments:</strong> Input expected salary and expenses to calculate your net monthly cash flow.
+                <strong>Compare:</strong> Click "Add to Comparison" to save up to 5 colleges and view them side-by-side using the "Compare All" button.
               </li>
             </ol>
           </div>
@@ -691,7 +828,7 @@ const Calculator = () => {
             <div className="section-header">
               <h3>Inputs</h3>
             </div>
-          <form className="input-form" onSubmit={handleSubmit}>
+          <form className="input-form" onSubmit={handleAddToCompare}>
             <div className="collapsible-section">
               <button type="button" className={`section-toggle ${!sections.costs ? 'closed' : ''}`} onClick={() => toggleSection('costs')}>
                 <span>Costs</span>
@@ -724,7 +861,7 @@ const Calculator = () => {
                   </div>
                   
                   <div className="input-group">
-                    <label htmlFor="tuition">4-Year Tuition ($)</label>
+                    <label htmlFor="tuition">Estimated 4-Year Tuition ($)</label>
                     <input
                       type="number"
                       id="tuition"
@@ -738,7 +875,7 @@ const Calculator = () => {
                   </div>
 
                   <div className="input-group">
-                    <label htmlFor="financialAid">4-Year Financial Aid ($)</label>
+                    <label htmlFor="financialAid">Expected 4-Year Financial Aid ($)</label>
                     <input
                       type="number"
                       id="financialAid"
@@ -751,7 +888,7 @@ const Calculator = () => {
                   </div>
 
                   <div className="input-group">
-                    <label htmlFor="familyContribution">Annual Family Contribution ($)</label>
+                    <label htmlFor="familyContribution">Estimated Family Contribution ($/yr)</label>
                     <input
                       type="number"
                       id="familyContribution"
@@ -791,7 +928,7 @@ const Calculator = () => {
                       />
                     </div>
                     <div className="input-group">
-                      <label htmlFor="loanTerm">Loan Term (yrs)</label>
+                      <label htmlFor="loanTerm">Expected Loan Term (yrs)</label>
                       <input
                         type="number"
                         id="loanTerm"
@@ -805,7 +942,7 @@ const Calculator = () => {
                   </div>
                   <div style={{ display: 'flex', gap: '1rem' }}>
                     <button type="button" className="schedule-button" style={{ flex: 1 }} onClick={handleShowSchedule}>
-                      Show Payment Schedule
+                      Show Estimated Payment Schedule
                     </button>
                     <button type="button" className="secondary-button" style={{ flex: 1 }} onClick={() => toggleSection('payments')}>
                       Next
@@ -835,7 +972,7 @@ const Calculator = () => {
                     />
                   </div>
                   <div className="input-group">
-                    <label htmlFor="takeHomePay">Takehome after taxes (Monthly $)</label>
+                    <label htmlFor="takeHomePay">Estimated takehome after taxes (Monthly $)</label>
                     <input
                       type="number"
                       id="takeHomePay"
@@ -853,7 +990,7 @@ const Calculator = () => {
                     />
                   </div>
                   <div className="input-group">
-                    <label htmlFor="expenses">Monthly Expenses ($)</label>
+                    <label htmlFor="expenses">Estimated Monthly Expenses ($)</label>
                     <input
                       type="number"
                       id="expenses"
@@ -865,7 +1002,7 @@ const Calculator = () => {
                     />
                   </div>
                   {error && <div className="error-message">{error}</div>}
-                  <button type="submit" className="calculate-button" style={{ width: '100%' }}>
+                  <button type="submit" className="add-to-compare-button" style={{ width: '100%' }} onClick={handleAddToCompare}>
                     Add to Comparison
                   </button>
                 </div>
@@ -912,7 +1049,15 @@ const Calculator = () => {
             </div>
           </div>
           <div className="result-card">
-            <h4 style={{ margin: 0, color: '#334155' }}>Cost Summary</h4>
+            <h4 style={{ margin: 0, color: '#334155' }}>
+              Estimated Cost Summary
+              <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                  These figures are projections based on the data you entered. Actual cost to attend college will vary based on actuals.
+                </span>
+              </span>
+            </h4>
             <div className="result-item">
               <h4>4-Year Cost</h4>
               <div className="value">{formatCurrency(calculateFourYearCost())}</div>
@@ -931,7 +1076,15 @@ const Calculator = () => {
             </div>
           </div>
           <div className="result-card">
-            <h4 style={{ margin: 0, color: '#334155' }}>Loan Summary</h4>
+            <h4 style={{ margin: 0, color: '#334155' }}>
+              Estimated Loan Summary
+              <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                  This shows the estimated breakdown of your loan principal, monthly payments, and total interest paid over the loan term, based on the data you entered. Actual loan principal, monthly payments, and total interest paid to attend college will vary based on actuals.
+                </span>
+              </span>
+            </h4>
             <div className="result-item">
               <h4>Loan Amount</h4>
               <div className="value">{formatCurrency(calculateLoanAmount())}</div>
@@ -946,7 +1099,15 @@ const Calculator = () => {
             </div>
           </div>
           <div className="result-card">
-            <h4 style={{ margin: 0, color: '#334155' }}>Cash Flow</h4>
+            <h4 style={{ margin: 0, color: '#334155' }}>
+              Estimated Cash Flow
+              <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                  Estimated of the breakdown of your monthly income, taxes, loan payments, and expenses to show your expected net monthly cash flow. Actual net monthly cash flow will vary based on your specific circumstances.
+                </span>
+              </span>
+            </h4>
             <table className="ledger-table">
               <thead>
                 <tr>
@@ -957,12 +1118,12 @@ const Calculator = () => {
               </thead>
               <tbody>
                 <tr>
-                  <td>Monthly Salary</td>
+                  <td>Estimated Monthly Salary</td>
                   <td style={{ textAlign: 'right', color: '#10b981' }}>{formatCurrency(getMonthlyGross())}</td>
                   <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(getMonthlyGross())}</td>
                 </tr>
                 <tr>
-                  <td>Monthly Taxes</td>
+                  <td>Estimated Monthly Taxes</td>
                   <td style={{ textAlign: 'right', color: '#ef4444' }}>-{formatCurrency(getMonthlyTax())}</td>
                   <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(getMonthlyTakeHome())}</td>
                 </tr>
@@ -982,7 +1143,15 @@ const Calculator = () => {
             </table>
           </div>
           <div className="result-card">
-            <h4 style={{ margin: 0, color: '#334155' }}>10-Year Savings Projection</h4>
+            <h4 style={{ margin: 0, color: '#334155' }}>
+              10-Year Savings Projection
+              <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                  Potential savings accumulated over 10 years based on your estimated net cash flow and 401k contributions.
+                </span>
+              </span>
+            </h4>
             <div className="result-item">
               <h4>Total 401k Contribution</h4>
               <div className="value">{formatCurrency(calculateTenYear401k())}</div>
@@ -1582,6 +1751,75 @@ const Calculator = () => {
               <button className="calculate-button" onClick={() => setShowTaxModal(false)} style={{ marginTop: '1rem' }}>
                 Done
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showComparisonModal && (
+        <div className="modal-overlay">
+          <div className="modal-content comparison-modal-content">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ margin: 0 }}>
+                College Comparison (Estimates)
+                <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                  <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                    Side-by-side comparison of estimated key financial metrics for your saved colleges.
+                  </span>
+                </span>
+              </h3>
+              <button onClick={() => setShowComparisonModal(false)} className="secondary-button">Close</button>
+            </div>
+            <div className="comparison-table-container">
+              <table className="comparison-table">
+                <thead>
+                  <tr>
+                    <th></th>
+                    {comparedColleges.map(c => <th key={c.id}>{c.name}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>4-Year Cost</td>
+                    {comparedColleges.map(c => <td key={c.id}>{formatCurrency(calculateMetrics(c.data).fourYearCost)}</td>)}
+                  </tr>
+                  <tr>
+                    <td>4-Year Financial Aid</td>
+                    {comparedColleges.map(c => <td key={c.id} style={{ color: '#10b981' }}>{formatCurrency(calculateMetrics(c.data).fourYearAid)}</td>)}
+                  </tr>
+                  <tr>
+                    <td>Loan Amount</td>
+                    {comparedColleges.map(c => <td key={c.id}>{formatCurrency(calculateMetrics(c.data).loanAmount)}</td>)}
+                  </tr>
+                  <tr>
+                    <td>Total Interest Paid</td>
+                    {comparedColleges.map(c => <td key={c.id}>{formatCurrency(calculateMetrics(c.data).totalInterest)}</td>)}
+                  </tr>
+                  <tr style={{ background: '#f8fafc', fontWeight: 'bold' }}>
+                    <td>Total Cost of College</td>
+                    {comparedColleges.map(c => <td key={c.id}>{formatCurrency(calculateMetrics(c.data).totalCost)}</td>)}
+                  </tr>
+                  <tr>
+                    <td>Monthly Loan Payment</td>
+                    {comparedColleges.map(c => <td key={c.id} style={{ color: '#ef4444' }}>{formatCurrency(calculateMetrics(c.data).monthlyPayment)}</td>)}
+                  </tr>
+                  <tr>
+                    <td>Net Monthly Cash Flow</td>
+                    {comparedColleges.map(c => {
+                      const val = calculateMetrics(c.data).netMonthlyCashFlow;
+                      return <td key={c.id} style={{ color: val >= 0 ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>{formatCurrency(val)}</td>;
+                    })}
+                  </tr>
+                  <tr>
+                    <td>10-Year Projected Savings</td>
+                    {comparedColleges.map(c => {
+                      const val = calculateMetrics(c.data).totalSavings;
+                      return <td key={c.id} style={{ color: val >= 0 ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>{formatCurrency(val)}</td>;
+                    })}
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
