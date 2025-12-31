@@ -574,4 +574,107 @@ describe('Calculator inputs', () => {
     expect(screen.getByText('Net Monthly Cash Flow')).toBeInTheDocument();
     expect(screen.getByText('$2,131')).toBeInTheDocument();
   });
+
+  it('verifies ledger table structure and values', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    // 1. Set up Loan ($60k, 5%, 10yr -> ~$636/mo)
+    await user.click(screen.getByLabelText(/4-Year Tuition \(\$\)/i));
+    const tuitionInputs = screen.getAllByLabelText(/Tuition \+ Other/i);
+    await user.type(tuitionInputs[0], '25000');
+    await user.click(screen.getByText(/Copy to all/i));
+    await user.click(screen.getByRole('button', { name: /Done/i }));
+
+    await user.type(screen.getByLabelText(/Annual Family Contribution/i), '10000');
+
+    await user.click(screen.getByRole('button', { name: /Loans/i }));
+    await user.type(screen.getByLabelText(/Loan Interest/i), '5');
+    await user.type(screen.getByLabelText(/Loan Term/i), '10');
+
+    // 2. Set up Income ($60k/yr -> $5k/mo)
+    await user.click(screen.getByRole('button', { name: /Payments/i }));
+    await user.type(screen.getByLabelText(/Expected Annual Starting Salary/i), '60000');
+
+    // 3. Set up Expenses ($1000/mo)
+    await user.click(screen.getByLabelText(/Monthly Expenses \(\$\)/i));
+    await user.click(screen.getByRole('button', { name: /Clear All/i }));
+    await user.type(screen.getByLabelText(/Rent/i), '1000');
+    await user.click(screen.getByRole('button', { name: /Done/i }));
+
+    // 4. Verify Ledger Table Headers
+    expect(screen.getByText('Item')).toBeInTheDocument();
+    expect(screen.getByText('Amount')).toBeInTheDocument();
+    expect(screen.getAllByText('Balance')[0]).toBeInTheDocument();
+
+    // 5. Verify Ledger Rows
+    // Row 1: Salary ($5,000)
+    expect(screen.getByText('Monthly Salary')).toBeInTheDocument();
+    expect(screen.getAllByText('$5,000').length).toBeGreaterThanOrEqual(2); // Amount and Balance
+
+    // Row 2: Taxes (Default ~24.65% of 5000 = 1232.5 -> 1233)
+    expect(screen.getByText('Monthly Taxes')).toBeInTheDocument();
+    expect(screen.getByText('-$1,233')).toBeInTheDocument();
+    expect(screen.getByText('$3,768')).toBeInTheDocument(); // 5000 - 1232.5 = 3767.5
+
+    // Row 3: Loan Payment (~636)
+    expect(screen.getByText('Loan Payment')).toBeInTheDocument();
+    expect(screen.getByText('-$636')).toBeInTheDocument();
+    expect(screen.getByText('$3,131')).toBeInTheDocument(); // 3767.5 - 636.39 = 3131.11
+
+    // Row 4: Expenses (1000)
+    expect(screen.getByText('Monthly Expenses')).toBeInTheDocument();
+    expect(screen.getByText('-$1,000')).toBeInTheDocument();
+    expect(screen.getAllByText('$2,131').length).toBeGreaterThanOrEqual(1); // 3131.11 - 1000 = 2131.11
+  });
+
+  it('calculates 10-year savings projection correctly', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    // 1. Set up Loan ($60k, 5%, 10yr -> ~$636/mo)
+    await user.click(screen.getByLabelText(/4-Year Tuition \(\$\)/i));
+    const tuitionInputs = screen.getAllByLabelText(/Tuition \+ Other/i);
+    await user.type(tuitionInputs[0], '25000');
+    await user.click(screen.getByText(/Copy to all/i));
+    await user.click(screen.getByRole('button', { name: /Done/i }));
+
+    await user.type(screen.getByLabelText(/Annual Family Contribution/i), '10000');
+
+    await user.click(screen.getByRole('button', { name: /Loans/i }));
+    await user.type(screen.getByLabelText(/Loan Interest/i), '5');
+    await user.type(screen.getByLabelText(/Loan Term/i), '10');
+
+    // 2. Set up Income ($60k/yr -> $5k/mo)
+    await user.click(screen.getByRole('button', { name: /Payments/i }));
+    await user.type(screen.getByLabelText(/Expected Annual Starting Salary/i), '60000');
+
+    // 3. Set up Expenses (Rent 1000, 401k 500 -> Total 1500)
+    await user.click(screen.getByLabelText(/Monthly Expenses \(\$\)/i));
+    await user.click(screen.getByRole('button', { name: /Clear All/i }));
+    await user.type(screen.getByLabelText(/Rent/i), '1000');
+    await user.type(screen.getByLabelText(/401k Contribution/i), '500');
+    await user.click(screen.getByRole('button', { name: /Done/i }));
+
+    // 4. Verify 10-Year Projections
+    // 401k: 500 * 12 * 10 = 60,000
+    expect(screen.getByText('Total 401k Contribution')).toBeInTheDocument();
+    expect(screen.getByText('$60,000')).toBeInTheDocument();
+
+    // Net Flow: (3767.50 - 1500 - 636.39) * 120 = 1631.11 * 120 = 195,733.2
+    expect(screen.getByText('Accumulated Net Cash Flow')).toBeInTheDocument();
+    expect(screen.getByText('$195,733')).toBeInTheDocument();
+
+    // Total: 60,000 + 195,733.2 = 255,733.2
+    expect(screen.getByText('Total Projected Savings')).toBeInTheDocument();
+    expect(screen.getByText('$255,733')).toBeInTheDocument();
+  });
 });

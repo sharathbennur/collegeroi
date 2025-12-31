@@ -450,6 +450,19 @@ const Calculator = () => {
     return takeHome - expenses - loanPayment;
   };
 
+  const calculateTenYear401k = () => {
+    const monthly = parseFloat(expensesBreakdown.contribution401k) || 0;
+    return monthly * 12 * 10;
+  };
+
+  const calculateTenYearNetFlow = () => {
+    return calculateNetMonthlyCashFlow() * 12 * 10;
+  };
+
+  const calculateTotalTenYearSavings = () => {
+    return calculateTenYear401k() + calculateTenYearNetFlow();
+  };
+
   return (
     <div className="calculator-container">
       <nav className="navbar">
@@ -717,6 +730,25 @@ const Calculator = () => {
                 </tr>
               </tbody>
             </table>
+          </div>
+          <div className="result-card">
+            <h4 style={{ margin: 0, color: '#334155' }}>10-Year Savings Projection</h4>
+            <div className="result-item">
+              <h4>Total 401k Contribution</h4>
+              <div className="value">{formatCurrency(calculateTenYear401k())}</div>
+            </div>
+            <div className="result-item">
+              <h4>Accumulated Net Cash Flow</h4>
+              <div className="value" style={{ color: calculateTenYearNetFlow() >= 0 ? '#10b981' : '#ef4444' }}>
+                {formatCurrency(calculateTenYearNetFlow())}
+              </div>
+            </div>
+            <div className="result-item">
+              <h4>Total Projected Savings</h4>
+              <div className="value" style={{ color: calculateTotalTenYearSavings() >= 0 ? '#10b981' : '#ef4444' }}>
+                {formatCurrency(calculateTotalTenYearSavings())}
+              </div>
+            </div>
           </div>
 
           {showSchedule && (
