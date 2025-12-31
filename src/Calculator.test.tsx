@@ -707,7 +707,7 @@ describe('Calculator inputs', () => {
 
     // Initial state: both columns visible
     expect(screen.getByRole('heading', { name: 'Inputs' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Chat' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Guidance' })).toBeInTheDocument();
 
     // Toggle Left Column
     const leftToggle = screen.getByTitle('Collapse Inputs');
@@ -720,14 +720,14 @@ describe('Calculator inputs', () => {
     expect(screen.getByRole('heading', { name: 'Inputs' })).toBeInTheDocument();
 
     // Toggle Right Column
-    const rightToggle = screen.getByTitle('Collapse Chat');
+    const rightToggle = screen.getByTitle('Collapse Guidance');
     await user.click(rightToggle);
 
-    expect(screen.queryByRole('heading', { name: 'Chat' })).not.toBeInTheDocument();
-    expect(rightToggle).toHaveAttribute('title', 'Expand Chat');
+    expect(screen.queryByRole('heading', { name: 'Guidance' })).not.toBeInTheDocument();
+    expect(rightToggle).toHaveAttribute('title', 'Expand Guidance');
 
     await user.click(rightToggle);
-    expect(screen.getByRole('heading', { name: 'Chat' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Guidance' })).toBeInTheDocument();
   });
 
   it('toggles instructions visibility', async () => {

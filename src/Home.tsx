@@ -1,9 +1,14 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import './Home.css';
 import screenshot from './assets/collegeroi-screenshot.png';
 
 const Home = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = 'CollegeROI - Home';
+  }, []);
 
   const handleEnter = () => {
     // Navigate to your main dashboard or login route

@@ -11,6 +11,58 @@ interface PaymentScheduleRow {
   balance: number;
 }
 
+const helpTopics = [
+  {
+    id: 'data-guide',
+    title: 'How to Find College-specific Data',
+    content: 'Unsure what numbers to enter? Try these Google searches:\n\n• For College Costs: Search "[College Name] cost of attendance". Look for the official .edu financial aid page. Use the "Total Cost" or "Sticker Price" which includes tuition, fees, room, and board.\n\n• For Salary: Search "[Major] entry level salary" or "[College Name] [Major] starting salary". Websites like Glassdoor, Payscale, or the US Bureau of Labor Statistics are good sources.'
+  },  {
+    id: 'tuition',
+    title: 'Tuition Breakdown',
+    content: 'Helps you enter the yearly tuition and room & board costs for each of the 4 years. You can also use the "Auto-fill" feature on the main form to populate these values for popular colleges. Use the Inflation % feature at the top to automatically calculate future year costs based on the first year values and inflation rates.'
+  },
+  {
+    id: 'cost',
+    title: '4-Year Cost',
+    content: 'The total estimated cost of tuition, room, and board for 4 years. This assumes the values entered in the "Costs" section.'
+  },
+  {
+    id: 'contribution',
+    title: 'Family Contribution',
+    content: 'The amount your family contributes towards your education, reducing the principal amount you need to borrow.'
+  },
+  {
+    id: 'loan',
+    title: 'Loan Amount',
+    content: 'The total principal amount borrowed. Calculated as (4-Year Cost) - (4-Year Family Contribution).'
+  },
+  {
+    id: 'payment',
+    title: 'Monthly Loan Payment',
+    content: 'The amount you must pay each month to repay your loan over the specified term. Includes both principal and interest.'
+  },
+  {
+    id: 'interest',
+    title: 'Total Interest Paid',
+    content: 'The total amount of interest paid over the life of the loan. A longer term or higher rate increases this amount.'
+  },
+  {
+    id: 'taxes',
+    title: 'Estimated Taxes',
+    content: 'Estimated monthly federal, state, and local taxes based on your starting salary. Includes Social Security and Medicare.'
+  },
+  {
+    id: 'cashflow',
+    title: 'Net Monthly Cash Flow',
+    content: 'Your remaining money each month after taxes, loan payments, and living expenses. (Take-home Pay - Loan Payment - Expenses).'
+  },
+  {
+    id: 'savings',
+    title: 'Projected Savings',
+    content: 'The total estimated savings over 10 years, including your 401k contributions and accumulated net cash flow.'
+  },
+];
+
 const Calculator = () => {
   const [formData, setFormData] = useState({
     collegeName: '',
@@ -70,8 +122,11 @@ const Calculator = () => {
   const [showLeftPanel, setShowLeftPanel] = useState(true);
   const [showRightPanel, setShowRightPanel] = useState(true);
   const [showInstructions, setShowInstructions] = useState(true);
+  const [guidanceSearch, setGuidanceSearch] = useState('');
+  const [selectedTopic, setSelectedTopic] = useState<typeof helpTopics[0] | null>(null);
 
   useEffect(() => {
+    document.title = 'CollegeROI - Calculator';
     const savedState = localStorage.getItem('collegeRoiCalcState');
     if (savedState) {
       try {
@@ -509,6 +564,11 @@ const Calculator = () => {
     return '1fr';
   };
 
+  const filteredTopics = helpTopics.filter(topic => 
+    topic.title.toLowerCase().includes(guidanceSearch.toLowerCase()) ||
+    topic.content.toLowerCase().includes(guidanceSearch.toLowerCase())
+  );
+
   return (
     <div className="calculator-container">
       <nav className="navbar">
@@ -772,7 +832,7 @@ const Calculator = () => {
                 type="button" 
                 className="toggle-button" 
                 onClick={() => setShowRightPanel(!showRightPanel)}
-                title={showRightPanel ? "Collapse Chat" : "Expand Chat"}
+                title={showRightPanel ? "Collapse Guidance" : "Expand Guidance"}
               >
                 {showRightPanel ? <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg> : <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>}
               </button>
@@ -931,7 +991,34 @@ const Calculator = () => {
         </div>
         {showRightPanel && (
           <div className="column right-col">
-            <h3>Chat</h3>
+            <h3>Guidance</h3>
+            {!selectedTopic ? (
+              <>
+                <input
+                  type="text"
+                  placeholder="Search help topics..."
+                  value={guidanceSearch}
+                  onChange={(e) => setGuidanceSearch(e.target.value)}
+                  className="guidance-search"
+                />
+                <ul className="topic-list">
+                  {filteredTopics.map(topic => (
+                    <li key={topic.id} className="topic-item" onClick={() => setSelectedTopic(topic)}>
+                      {topic.title}
+                    </li>
+                  ))}
+                  {filteredTopics.length === 0 && (
+                    <li style={{ color: '#64748b', fontStyle: 'italic', fontSize: '0.9rem' }}>No topics found.</li>
+                  )}
+                </ul>
+              </>
+            ) : (
+              <div className="topic-detail">
+                <button className="back-link" onClick={() => setSelectedTopic(null)}>← Back to topics</button>
+                <h4>{selectedTopic.title}</h4>
+                <p>{selectedTopic.content}</p>
+              </div>
+            )}
           </div>
         )}
       </div>
