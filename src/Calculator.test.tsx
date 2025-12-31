@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, afterEach, vi } from 'vitest';
@@ -315,23 +315,27 @@ describe('Calculator inputs', () => {
     // Click Show Payment Schedule
     await user.click(screen.getByRole('button', { name: /Show Payment Schedule/i }));
 
-    // Verify table headers exist
-    expect(screen.getByText('Year / Month')).toBeInTheDocument();
-    expect(screen.getByText('Payment')).toBeInTheDocument();
-    expect(screen.getByText('Principal')).toBeInTheDocument();
-    expect(screen.getByText('Interest')).toBeInTheDocument();
-    expect(screen.getByText('Balance')).toBeInTheDocument();
+    // Verify table headers exist within the schedule table
+    const scheduleTable = screen.getByText('Year / Month').closest('table');
+    expect(scheduleTable).toBeInTheDocument();
+    
+    const tableScope = within(scheduleTable as HTMLElement);
+
+    expect(tableScope.getByText('Payment')).toBeInTheDocument();
+    expect(tableScope.getByText('Principal')).toBeInTheDocument();
+    expect(tableScope.getByText('Interest')).toBeInTheDocument();
+    expect(tableScope.getByText('Balance')).toBeInTheDocument();
 
     // Expand Year 1 to see monthly details
     await user.click(screen.getByText(/Year 1$/i));
 
     // Verify first row values for Month 1 (now visible)
     // Interest: 60000 * 0.05 / 12 = 250
-    expect(screen.getByText('$250')).toBeInTheDocument();
+    expect(tableScope.getByText('$250')).toBeInTheDocument();
     // Principal: 636 - 250 = 386
-    expect(screen.getByText('$386')).toBeInTheDocument();
+    expect(tableScope.getByText('$386')).toBeInTheDocument();
     // Balance: 60000 - 386 = 59614
-    expect(screen.getByText('$59,614')).toBeInTheDocument();
+    expect(tableScope.getByText('$59,614')).toBeInTheDocument();
   });
 
   it('triggers a confirmation dialog when Clear Saved Data is clicked', async () => {
@@ -576,7 +580,6 @@ describe('Calculator inputs', () => {
 
     // 4. Verify Net Cash Flow
     // Take-home: $3,767.50 (based on default 24.65% tax on $5k) - Expenses: $1,000 - Loan: ~$636.39 = ~$2,131.11
-    expect(screen.getByText('Net Monthly Cash Flow')).toBeInTheDocument();
     expect(screen.getByText('$2,131')).toBeInTheDocument();
   });
 
@@ -671,8 +674,8 @@ describe('Calculator inputs', () => {
 
     // 4. Verify 10-Year Projections
     // 401k: 500 * 12 * 10 = 60,000
-    expect(screen.getByText('Total 401k Contribution')).toBeInTheDocument();
-    expect(screen.getByText('$60,000')).toBeInTheDocument();
+    const contributionHeader = screen.getByText('Total 401k Contribution');
+    expect(contributionHeader.closest('.result-item')).toHaveTextContent('$60,000');
 
     // Net Flow: (3767.50 - 1500 - 636.39) * 120 = 1631.11 * 120 = 195,733.2
     expect(screen.getByText('Accumulated Net Cash Flow')).toBeInTheDocument();

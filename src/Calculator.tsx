@@ -732,6 +732,9 @@ const Calculator = () => {
                     />
                   </div>
                   {error && <div className="error-message">{error}</div>}
+                  <button type="submit" className="calculate-button" style={{ width: '100%' }}>
+                    Calculate Payment Table
+                  </button>
                 </div>
               )}
             </div>
