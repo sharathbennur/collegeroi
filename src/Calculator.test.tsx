@@ -693,4 +693,58 @@ describe('Calculator inputs', () => {
     expect(screen.getByText(/Disclaimer:/i)).toBeInTheDocument();
     expect(screen.getByText(/The financial projections, college costs, and tax estimates provided by this tool are calculations based on user inputs and assumptions/i)).toBeInTheDocument();
   });
+
+  it('toggles side columns visibility when toggle buttons are clicked', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    // Initial state: both columns visible
+    expect(screen.getByRole('heading', { name: 'Inputs' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Chat' })).toBeInTheDocument();
+
+    // Toggle Left Column
+    const leftToggle = screen.getByTitle('Collapse Inputs');
+    await user.click(leftToggle);
+
+    expect(screen.queryByRole('heading', { name: 'Inputs' })).not.toBeInTheDocument();
+    expect(leftToggle).toHaveAttribute('title', 'Expand Inputs');
+
+    await user.click(leftToggle);
+    expect(screen.getByRole('heading', { name: 'Inputs' })).toBeInTheDocument();
+
+    // Toggle Right Column
+    const rightToggle = screen.getByTitle('Collapse Chat');
+    await user.click(rightToggle);
+
+    expect(screen.queryByRole('heading', { name: 'Chat' })).not.toBeInTheDocument();
+    expect(rightToggle).toHaveAttribute('title', 'Expand Chat');
+
+    await user.click(rightToggle);
+    expect(screen.getByRole('heading', { name: 'Chat' })).toBeInTheDocument();
+  });
+
+  it('toggles instructions visibility', async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText(/Why use CollegeROI/i)).toBeInTheDocument();
+
+    const hideButton = screen.getByLabelText('Hide Instructions');
+    await user.click(hideButton);
+
+    expect(screen.queryByText(/Why use CollegeROI/i)).not.toBeInTheDocument();
+    
+    const showButton = screen.getByRole('button', { name: /Show Instructions/i });
+    await user.click(showButton);
+
+    expect(screen.getByText(/Why use CollegeROI/i)).toBeInTheDocument();
+  });
 });

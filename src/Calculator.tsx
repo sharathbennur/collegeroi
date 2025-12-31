@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent, type KeyboardEvent, type ChangeEvent, Fragment } from 'react';
+import { useState, useEffect, useRef, type FormEvent, type KeyboardEvent, type ChangeEvent, Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import './Calculator.css';
 import { colleges } from './assets/colleges.ts';
@@ -66,6 +66,10 @@ const Calculator = () => {
     socialSecurity: '6.2',
     city: '0.0'
   });
+  const scheduleRef = useRef<HTMLDivElement>(null);
+  const [showLeftPanel, setShowLeftPanel] = useState(true);
+  const [showRightPanel, setShowRightPanel] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(true);
 
   useEffect(() => {
     const savedState = localStorage.getItem('collegeRoiCalcState');
@@ -82,6 +86,7 @@ const Calculator = () => {
         if (parsedState.showSchedule !== undefined) setShowSchedule(parsedState.showSchedule);
         if (parsedState.scheduleOpen !== undefined) setScheduleOpen(parsedState.scheduleOpen);
         if (parsedState.expandedYears) setExpandedYears(parsedState.expandedYears);
+        if (parsedState.showInstructions !== undefined) setShowInstructions(parsedState.showInstructions);
       } catch (error) {
         console.error('Error loading saved state:', error);
       }
@@ -288,36 +293,37 @@ const Calculator = () => {
 
     if (principal <= 0 || years <= 0) {
       setPaymentSchedule([]);
-      setShowSchedule(true);
-      setScheduleOpen(true);
-      return;
+    } else {
+      const monthlyRate = annualInterest / 100 / 12;
+      const numberOfPayments = years * 12;
+      const monthlyPayment = calculateMonthlyPayment();
+
+      const schedule: PaymentScheduleRow[] = [];
+      let balance = principal;
+
+      for (let i = 1; i <= numberOfPayments; i++) {
+        const interest = balance * monthlyRate;
+        const principalPayment = monthlyPayment - interest;
+        balance = Math.max(0, balance - principalPayment);
+
+        schedule.push({
+          month: i,
+          payment: monthlyPayment,
+          principal: principalPayment,
+          interest: interest,
+          balance: balance
+        });
+      }
+      setPaymentSchedule(schedule);
+      setExpandedYears([]);
     }
 
-    const monthlyRate = annualInterest / 100 / 12;
-    const numberOfPayments = years * 12;
-    const monthlyPayment = calculateMonthlyPayment();
-
-    const schedule: PaymentScheduleRow[] = [];
-    let balance = principal;
-
-    for (let i = 1; i <= numberOfPayments; i++) {
-      const interest = balance * monthlyRate;
-      const principalPayment = monthlyPayment - interest;
-      balance = Math.max(0, balance - principalPayment);
-
-      schedule.push({
-        month: i,
-        payment: monthlyPayment,
-        principal: principalPayment,
-        interest: interest,
-        balance: balance
-      });
-    }
-
-    setPaymentSchedule(schedule);
     setShowSchedule(true);
     setScheduleOpen(true);
-    setExpandedYears([]);
+    
+    setTimeout(() => {
+      scheduleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   const handleSave = () => {
@@ -331,7 +337,8 @@ const Calculator = () => {
       paymentSchedule,
       showSchedule,
       scheduleOpen,
-      expandedYears
+      expandedYears,
+      showInstructions
     };
     localStorage.setItem('collegeRoiCalcState', JSON.stringify(state));
     setSaveSuccess(true);
@@ -495,46 +502,75 @@ const Calculator = () => {
     return calculateTenYear401k() + calculateTenYearNetFlow();
   };
 
+  const getGridTemplateColumns = () => {
+    if (showLeftPanel && showRightPanel) return '1fr 2fr 1fr';
+    if (showLeftPanel && !showRightPanel) return '1fr 3fr';
+    if (!showLeftPanel && showRightPanel) return '3fr 1fr';
+    return '1fr';
+  };
+
   return (
     <div className="calculator-container">
       <nav className="navbar">
         <Link to="/" className="brand-name">CollegeROI 🚀</Link>
       </nav>
 
-      <div className="top-section">
-        <div className="instructions">
-          <h4>Why use CollegeROI ?</h4>
-          <p>
-            College is a significant investment. This calculator helps you evaluate the financial Return on Investment (<span className="info-icon" style={{ margin: 0, color: 'inherit', borderBottom: '1px dotted currentColor' }}>
-              ROI
-              <span className="tooltip-text" style={{ width: '200px' }}>
-                Return on Investment: A measure of the profitability of an investment relative to its cost.
-              </span>
-            </span>) of your degree 
-            by connecting tuition costs, loan interest, and future earnings. Visualize your monthly cash flow and savings to make informed decisions.
-          </p>
-        </div>
-        <div className="instructions">
-          <h4>How to use</h4>
-          <ol>
-            <li>
-              <strong>Costs:</strong> Enter a yearly breakdown of college costs or use <strong>Auto-fill</strong> for popular colleges.
-            </li>
-            <li>
-              <strong>Loans:</strong> Input your loan interest rate and term. View details with <strong>Show Payment Schedule</strong>.
-            </li>
-            <li>
-              <strong>Payments:</strong> Input expected salary and expenses to calculate your net monthly cash flow.
-            </li>
-          </ol>
-        </div>
-      </div>
-      
-      <div className="content-grid">
-        <div className="column left-col">
-          <div className="section-header">
-            <h3>Inputs</h3>
+      {showInstructions ? (
+        <div className="top-section" style={{ position: 'relative' }}>
+          <button
+            onClick={() => setShowInstructions(false)}
+            className="toggle-button"
+            style={{ position: 'absolute', top: '-10px', right: '-10px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '50%', width: '24px', height: '24px', padding: 0, boxShadow: '0 2px 4px rgba(0,0,0,0.1)', zIndex: 10 }}
+            title="Hide Instructions"
+            aria-label="Hide Instructions"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+          <div className="instructions">
+            <h4>Why use CollegeROI ?</h4>
+            <p>
+              College is a significant investment. This calculator helps you evaluate the financial Return on Investment (<span className="info-icon" style={{ margin: 0, color: 'inherit', borderBottom: '1px dotted currentColor' }}>
+                ROI
+                <span className="tooltip-text" style={{ width: '200px' }}>
+                  Return on Investment: A measure of the profitability of an investment relative to its cost.
+                </span>
+              </span>) of your degree 
+              by connecting tuition costs, loan interest, and future earnings. Visualize your monthly cash flow and savings to make informed decisions.
+            </p>
           </div>
+          <div className="instructions">
+            <h4>How to use</h4>
+            <ol>
+              <li>
+                <strong>Costs:</strong> Enter a yearly breakdown of college costs or use <strong>Auto-fill</strong> for popular colleges.
+              </li>
+              <li>
+                <strong>Loans:</strong> Input your loan interest rate and term. View details with <strong>Show Payment Schedule</strong>.
+              </li>
+              <li>
+                <strong>Payments:</strong> Input expected salary and expenses to calculate your net monthly cash flow.
+              </li>
+            </ol>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '0.5rem' }}>
+          <button 
+            onClick={() => setShowInstructions(true)}
+            className="secondary-button"
+            style={{ fontSize: '0.75rem', padding: '0.25rem 0.75rem', opacity: 0.8 }}
+          >
+            Show Instructions ▾
+          </button>
+        </div>
+      )}
+      
+      <div className="content-grid" style={{ gridTemplateColumns: getGridTemplateColumns() }}>
+        {showLeftPanel && (
+          <div className="column left-col">
+            <div className="section-header">
+              <h3>Inputs</h3>
+            </div>
           <form className="input-form" onSubmit={handleSubmit}>
             <div className="collapsible-section">
               <button type="button" className={`section-toggle ${!sections.costs ? 'closed' : ''}`} onClick={() => toggleSection('costs')}>
@@ -700,10 +736,22 @@ const Calculator = () => {
               )}
             </div>
           </form>
-        </div>
+          </div>
+        )}
+
         <div className="column center-col">
           <div className="section-header">
-            <h3>Costs & Interest</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <button 
+                type="button" 
+                className="toggle-button" 
+                onClick={() => setShowLeftPanel(!showLeftPanel)}
+                title={showLeftPanel ? "Collapse Inputs" : "Expand Inputs"}
+              >
+                {showLeftPanel ? <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg> : <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>}
+              </button>
+              <h3>Costs & Interest</h3>
+            </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button type="button" className="schedule-button" onClick={handleSave} aria-label="Save" title="Save">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
@@ -716,6 +764,14 @@ const Calculator = () => {
               </button>
               <button type="button" className="schedule-button" onClick={handleExport} aria-label="Export" title="Export">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              </button>
+              <button 
+                type="button" 
+                className="toggle-button" 
+                onClick={() => setShowRightPanel(!showRightPanel)}
+                title={showRightPanel ? "Collapse Chat" : "Expand Chat"}
+              >
+                {showRightPanel ? <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg> : <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>}
               </button>
             </div>
           </div>
@@ -806,7 +862,7 @@ const Calculator = () => {
           </div>
 
           {showSchedule && (
-            <div className="result-card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div ref={scheduleRef} className="result-card" style={{ padding: 0, overflow: 'hidden' }}>
               <button 
                 type="button" 
                 className={`section-toggle ${!scheduleOpen ? 'closed' : ''}`} 
@@ -870,9 +926,11 @@ const Calculator = () => {
             </div>
           )}
         </div>
-        <div className="column right-col">
-          <h3>Chat</h3>
-        </div>
+        {showRightPanel && (
+          <div className="column right-col">
+            <h3>Chat</h3>
+          </div>
+        )}
       </div>
 
       {showTuitionModal && (
