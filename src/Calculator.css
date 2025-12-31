@@ -23,8 +23,14 @@
   color: inherit;
 }
 
-.instructions {
+.top-section {
+  display: flex;
+  gap: 1rem;
   margin: 1rem 2rem 0;
+}
+
+.instructions {
+  flex: 1;
   padding: 1rem 1.5rem;
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(10px);
@@ -50,6 +56,13 @@
 .instructions li {
   margin-bottom: 0.25rem;
   line-height: 1.4;
+  font-size: 0.95rem;
+}
+
+.instructions p {
+  margin: 0;
+  color: #334155;
+  line-height: 1.5;
   font-size: 0.95rem;
 }
 
@@ -311,6 +324,24 @@
   color: #334155;
 }
 
+.site-footer {
+  padding: 0.75rem 2rem;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.75rem;
+  color: #64748b;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.site-footer p {
+  margin: 0;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .print-footer {
   display: none;
 }
@@ -318,6 +349,7 @@
 @media print {
   .navbar, 
   .instructions, 
+  .top-section,
   .secondary-button, 
   .schedule-button, 
   .calculate-button,
@@ -364,6 +396,14 @@
   .schedule-container {
     max-height: none;
     overflow: visible;
+  }
+
+  .site-footer {
+    background: none;
+    border-top: 1px solid #cbd5e1;
+    color: #000;
+    padding: 1rem 0;
+    text-align: left;
   }
 
   .print-footer {
@@ -470,4 +510,38 @@
 
 .ledger-table tr:last-child td {
   border-bottom: none;
+}
+
+.suggestions-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  margin-top: 0.25rem;
+  padding: 0;
+  list-style: none;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 50;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.suggestions-list li {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+  color: #334155;
+}
+
+.suggestions-list li:last-child {
+  border-bottom: none;
+}
+
+.suggestions-list li:hover {
+  background-color: #f8fafc;
+  color: #6366f1;
 }

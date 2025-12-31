@@ -24,7 +24,8 @@ const Calculator = () => {
   const [error, setError] = useState('');
   const [invalidFields, setInvalidFields] = useState<string[]>([]);
   const [showTuitionModal, setShowTuitionModal] = useState(false);
-  const [showCollegeModal, setShowCollegeModal] = useState(false);
+  const [suggestions, setSuggestions] = useState<typeof colleges>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [tuitionBreakdown, setTuitionBreakdown] = useState({
     tuition1: '',
     roomBoard1: '',
@@ -110,12 +111,28 @@ const Calculator = () => {
     }
   };
 
-  const handleCollegeSelect = (e: ChangeEvent<HTMLSelectElement>) => {
-    const selectedName = e.target.value;
-    if (!selectedName) return;
+  const handleCollegeNameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setFormData(prev => ({ ...prev, collegeName: value }));
+    
+    if (value.length > 0) {
+      const filtered = colleges.filter(c => 
+        c.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setSuggestions(filtered);
+      setShowSuggestions(true);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
 
-    const college = colleges.find(c => c.name === selectedName);
-    if (college) {
+    if (error) setError('');
+    if (invalidFields.includes('collegeName')) {
+      setInvalidFields(prev => prev.filter(field => field !== 'collegeName'));
+    }
+  };
+
+  const handleSuggestionClick = (college: typeof colleges[0]) => {
       const annualTuitionStr = college.annualTuition.toString();
       const annualRoomBoardStr = college.annualRoomBoard.toString();
       const totalTuition = (college.annualTuition + college.annualRoomBoard) * 4;
@@ -134,10 +151,12 @@ const Calculator = () => {
         tuition4: annualTuitionStr, roomBoard4: annualRoomBoardStr
       });
 
+      setSuggestions([]);
+      setShowSuggestions(false);
+
       // Clear errors for these fields
       setInvalidFields(prev => prev.filter(f => !['collegeName', 'salary', 'tuition'].includes(f)));
       if (error) setError('');
-    }
   };
 
   const handleTuitionChange = (e: FormEvent<HTMLInputElement>) => {
@@ -469,28 +488,39 @@ const Calculator = () => {
         <Link to="/" className="brand-name">CollegeROI 🚀</Link>
       </nav>
 
-      <div className="instructions">
-        <h4>How to use</h4>
-        <ol>
-          <li>
-            <strong>Costs:</strong> Enter a yearly breakdown of college costs or use <strong>Auto-fill</strong> for popular colleges.
-          </li>
-          <li>
-            <strong>Loans:</strong> Input your loan interest rate and term. View details with <strong>Show Payment Schedule</strong>.
-          </li>
-          <li>
-            <strong>Payments:</strong> Input expected salary and expenses to calculate your net monthly cash flow.
-          </li>
-        </ol>
+      <div className="top-section">
+        <div className="instructions">
+          <h4>Why use CollegeROI ?</h4>
+          <p>
+            College is a significant investment. This calculator helps you evaluate the financial Return on Investment (<span className="info-icon" style={{ margin: 0, color: 'inherit', borderBottom: '1px dotted currentColor' }}>
+              ROI
+              <span className="tooltip-text" style={{ width: '200px' }}>
+                Return on Investment: A measure of the profitability of an investment relative to its cost.
+              </span>
+            </span>) of your degree 
+            by connecting tuition costs, loan interest, and future earnings. Visualize your monthly cash flow and savings to make informed decisions.
+          </p>
+        </div>
+        <div className="instructions">
+          <h4>How to use</h4>
+          <ol>
+            <li>
+              <strong>Costs:</strong> Enter a yearly breakdown of college costs or use <strong>Auto-fill</strong> for popular colleges.
+            </li>
+            <li>
+              <strong>Loans:</strong> Input your loan interest rate and term. View details with <strong>Show Payment Schedule</strong>.
+            </li>
+            <li>
+              <strong>Payments:</strong> Input expected salary and expenses to calculate your net monthly cash flow.
+            </li>
+          </ol>
+        </div>
       </div>
       
       <div className="content-grid">
         <div className="column left-col">
           <div className="section-header">
             <h3>Inputs</h3>
-            <button type="button" className="secondary-button" onClick={() => setShowCollegeModal(true)}>
-              Auto-fill
-            </button>
           </div>
           <form className="input-form" onSubmit={handleSubmit}>
             <div className="collapsible-section">
@@ -500,17 +530,28 @@ const Calculator = () => {
               </button>
               {sections.costs && (
                 <div className="section-content">
-                  <div className="input-group">
+                  <div className="input-group" style={{ position: 'relative' }}>
                     <label htmlFor="collegeName">College Name</label>
                     <input
                       type="text"
                       id="collegeName"
                       name="collegeName"
-                      placeholder="e.g. Harvard University"
+                      placeholder="Type to search colleges..."
                       value={formData.collegeName}
-                      onChange={handleChange}
+                      onChange={handleCollegeNameChange}
+                      onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                      autoComplete="off"
                       className={invalidFields.includes('collegeName') ? 'error-input' : ''}
                     />
+                    {showSuggestions && suggestions.length > 0 && (
+                      <ul className="suggestions-list">
+                        {suggestions.map(college => (
+                          <li key={college.rank} onMouseDown={() => handleSuggestionClick(college)}>
+                            {college.name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                   
                   <div className="input-group">
@@ -916,25 +957,6 @@ const Calculator = () => {
         </div>
       )}
 
-      {showCollegeModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Select a College from the Top 20 to get started</h3>
-            <div className="input-group">
-              <select id="collegeSelectModal" aria-label="Top 20 Colleges" onChange={(e) => { handleCollegeSelect(e); setShowCollegeModal(false); }} defaultValue="">
-                <option value="" disabled>Select a college...</option>
-                {colleges.map(college => (
-                  <option key={college.rank} value={college.name}>{college.name}</option>
-                ))}
-              </select>
-            </div>
-            <button className="calculate-button" onClick={() => setShowCollegeModal(false)} style={{ marginTop: '1rem', background: '#64748b' }}>
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
-
       {showExpensesModal && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -1254,6 +1276,14 @@ const Calculator = () => {
           </div>
         </div>
       )}
+
+      <footer className="site-footer">
+        <p>
+          <strong>Disclaimer:</strong> The financial projections, college costs, and tax estimates provided by this tool are calculations based on user inputs and assumptions. 
+          They are for informational purposes only and do not constitute professional financial, tax, or legal advice. 
+          Please consult with a qualified professional before making any financial decisions.
+        </p>
+      </footer>
 
       <div className="print-footer">
         <span>Generated using CollegeROI.app</span>

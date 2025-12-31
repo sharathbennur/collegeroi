@@ -181,7 +181,7 @@ describe('Calculator inputs', () => {
     expect(tuitionInputs[3]).toHaveValue(11576); // Year 4: 10000 * 1.05^3 (rounded)
   });
 
-  it('populates form fields when a college is selected from the dropdown', async () => {
+  it('populates form fields when a college is selected from auto-complete', async () => {
     const user = userEvent.setup();
     render(
       <MemoryRouter>
@@ -189,14 +189,15 @@ describe('Calculator inputs', () => {
       </MemoryRouter>
     );
 
-    // Open the modal
-    await user.click(screen.getByRole('button', { name: /Auto-fill/i }));
-
-    const select = screen.getByLabelText(/Top 20 Colleges/i);
     const collegeInput = screen.getByLabelText(/College Name/i);
-    const tuitionInput = screen.getByLabelText(/4-Year Tuition \(\$\)/i);
+    
+    // Type to trigger suggestions
+    await user.type(collegeInput, 'Harvard');
+    
+    // Click suggestion
+    await user.click(screen.getByText('Harvard University'));
 
-    await user.selectOptions(select, 'Harvard University');
+    const tuitionInput = screen.getByLabelText(/4-Year Tuition \(\$\)/i);
 
     expect(collegeInput).toHaveValue('Harvard University');
     // (59000 + 21000) * 4 = 320000
@@ -676,5 +677,16 @@ describe('Calculator inputs', () => {
     // Total: 60,000 + 195,733.2 = 255,733.2
     expect(screen.getByText('Total Projected Savings')).toBeInTheDocument();
     expect(screen.getByText('$255,733')).toBeInTheDocument();
+  });
+
+  it('displays the disclaimer footer', () => {
+    render(
+      <MemoryRouter>
+        <Calculator />
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText(/Disclaimer:/i)).toBeInTheDocument();
+    expect(screen.getByText(/The financial projections, college costs, and tax estimates provided by this tool are calculations based on user inputs and assumptions/i)).toBeInTheDocument();
   });
 });
