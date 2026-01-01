@@ -164,6 +164,9 @@ const Calculator = () => {
   const [selectedTopic, setSelectedTopic] = useState<typeof helpTopics[0] | null>(null);
   const [comparedColleges, setComparedColleges] = useState<SavedCollege[]>([]);
   const [showComparisonModal, setShowComparisonModal] = useState(false);
+  const [showFloatingMetrics, setShowFloatingMetrics] = useState(true);
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  const [showClearConfirmation, setShowClearConfirmation] = useState(false);
 
   useEffect(() => {
     document.title = 'CollegeROI - Calculator';
@@ -183,6 +186,7 @@ const Calculator = () => {
         if (parsedState.expandedYears) setExpandedYears(parsedState.expandedYears);
         if (parsedState.showInstructions !== undefined) setShowInstructions(parsedState.showInstructions);
         if (parsedState.comparedColleges) setComparedColleges(parsedState.comparedColleges);
+        if (parsedState.showFloatingMetrics !== undefined) setShowFloatingMetrics(parsedState.showFloatingMetrics);
       } catch (error) {
         console.error('Error loading saved state:', error);
       }
@@ -510,7 +514,8 @@ const Calculator = () => {
       scheduleOpen,
       expandedYears,
       showInstructions,
-      comparedColleges: collegesToSave
+      comparedColleges: collegesToSave,
+      showFloatingMetrics
     };
     localStorage.setItem('collegeRoiCalcState', JSON.stringify(state));
   };
@@ -526,6 +531,52 @@ const Calculator = () => {
       localStorage.removeItem('collegeRoiCalcState');
       alert('Saved data cleared from local storage');
     }
+  };
+
+  const handleClearForm = () => {
+    setShowClearConfirmation(true);
+  };
+
+  const confirmClearForm = () => {
+      setFormData({
+        collegeName: '',
+        tuition: '',
+        financialAid: '',
+        familyContribution: '',
+        loanInterest: '',
+        loanTerm: '',
+        salary: '',
+        expenses: ''
+      });
+      setTuitionBreakdown({
+        tuition1: '', roomBoard1: '', financialAid1: '',
+        tuition2: '', roomBoard2: '', financialAid2: '',
+        tuition3: '', roomBoard3: '', financialAid3: '',
+        tuition4: '', roomBoard4: '', financialAid4: ''
+      });
+      setExpensesBreakdown({
+        rent: '2000',
+        groceries: '500',
+        eatingOut: '300',
+        utilities: '150',
+        transportation: '200',
+        healthCare: '150',
+        miscellaneous: '200',
+        contribution401k: '500'
+      });
+      setTaxRates({
+        federal: '12.0',
+        state: '5.0',
+        medicare: '1.45',
+        socialSecurity: '6.2',
+        city: '0.0'
+      });
+      setInflationRate('');
+      setPaymentSchedule([]);
+      setExpandedYears([]);
+      setInvalidFields([]);
+      setError('');
+      setShowClearConfirmation(false);
   };
 
   const handleExport = () => {
@@ -747,14 +798,27 @@ const Calculator = () => {
     <div className="calculator-container">
       <nav className="navbar">
         <Link to="/" className="brand-name">CollegeROI 🚀</Link>
-        {!showInstructions && (
-          <button 
-            onClick={() => setShowInstructions(true)}
-            className="secondary-button"
-            style={{ fontSize: '0.75rem', padding: '0.25rem 0.75rem', opacity: 0.8, position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}
-          >
-            Show Instructions ▾
-          </button>
+        {showFloatingMetrics && (
+          <div className="navbar-metrics">
+            {formData.collegeName && (
+              <div className="metric">
+                <span className="label">College</span>
+                <span className="value" style={{ color: '#334155' }}>{formData.collegeName}</span>
+              </div>
+            )}
+            <div className="metric">
+              <span className="label">Net Monthly Cash Flow</span>
+              <span className={`value ${calculateNetMonthlyCashFlow() >= 0 ? 'positive' : 'negative'}`}>
+                {formatCurrency(calculateNetMonthlyCashFlow())}
+              </span>
+            </div>
+            <div className="metric">
+              <span className="label">10-Year Projected Savings</span>
+              <span className={`value ${calculateTotalTenYearSavings() >= 0 ? 'positive' : 'negative'}`}>
+                {formatCurrency(calculateTotalTenYearSavings())}
+              </span>
+            </div>
+          </div>
         )}
         
         {comparedColleges.length > 0 && (
@@ -780,6 +844,37 @@ const Calculator = () => {
             ))}
           </div>
         )}
+
+        <div className={`settings-container ${comparedColleges.length > 0 ? 'has-comparisons' : ''}`}>
+          <button
+            className="secondary-button"
+            onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+            title="Settings"
+            style={{ padding: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </button>
+          {showSettingsMenu && (
+            <div className="settings-menu">
+              <label className="settings-option">
+                <input
+                  type="checkbox"
+                  checked={showFloatingMetrics}
+                  onChange={(e) => setShowFloatingMetrics(e.target.checked)}
+                />
+                Show Floating Metrics
+              </label>
+              <label className="settings-option">
+                <input
+                  type="checkbox"
+                  checked={showInstructions}
+                  onChange={(e) => setShowInstructions(e.target.checked)}
+                />
+                Show Instructions
+              </label>
+            </div>
+          )}
+        </div>
       </nav>
 
       <div className={`instructions-panel ${showInstructions ? 'expanded' : 'collapsed'}`}>
@@ -826,12 +921,21 @@ const Calculator = () => {
         {showLeftPanel && (
           <div className="column left-col">
             <div className="section-header">
-              <h3>Inputs</h3>
+              <h3>Your Data </h3>
+              <button 
+                type="button" 
+                className="secondary-button" 
+                onClick={handleClearForm}
+                style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                title="Reset all inputs to default"
+              >
+                Clear
+              </button>
             </div>
           <form className="input-form" onSubmit={handleAddToCompare}>
             <div className="collapsible-section">
               <button type="button" className={`section-toggle ${!sections.costs ? 'closed' : ''}`} onClick={() => toggleSection('costs')}>
-                <span>Costs</span>
+                <span>Select College</span>
                 <span>{sections.costs ? '−' : '+'}</span>
               </button>
               {sections.costs && (
@@ -873,32 +977,6 @@ const Calculator = () => {
                       className={invalidFields.includes('tuition') ? 'error-input' : ''}
                     />
                   </div>
-
-                  <div className="input-group">
-                    <label htmlFor="financialAid">Expected 4-Year Financial Aid ($)</label>
-                    <input
-                      type="number"
-                      id="financialAid"
-                      name="financialAid"
-                      placeholder="Click to enter financial aid"
-                      value={formData.financialAid}
-                      readOnly
-                      onClick={() => setShowFinancialAidModal(true)}
-                    />
-                  </div>
-
-                  <div className="input-group">
-                    <label htmlFor="familyContribution">Estimated Family Contribution ($/yr)</label>
-                    <input
-                      type="number"
-                      id="familyContribution"
-                      name="familyContribution"
-                      placeholder="e.g. 40,000"
-                      value={formData.familyContribution}
-                      onChange={handleChange}
-                      className={invalidFields.includes('familyContribution') ? 'error-input' : ''}
-                    />
-                  </div>
                   <button type="button" className="secondary-button" style={{ width: '100%' }} onClick={() => toggleSection('loans')}>
                     Next
                   </button>
@@ -908,11 +986,37 @@ const Calculator = () => {
 
             <div className="collapsible-section">
               <button type="button" className={`section-toggle ${!sections.loans ? 'closed' : ''}`} onClick={() => toggleSection('loans')}>
-                <span>Loans</span>
+                <span>Paying for college</span>
                 <span>{sections.loans ? '−' : '+'}</span>
               </button>
               {sections.loans && (
                 <div className="section-content">
+                  <div className="input-row">
+                    <div className="input-group">
+                      <label htmlFor="financialAid">Expected 4-Year Financial Aid ($)</label>
+                      <input
+                        type="number"
+                        id="financialAid"
+                        name="financialAid"
+                        placeholder="Click to enter financial aid"
+                        value={formData.financialAid}
+                        readOnly
+                        onClick={() => setShowFinancialAidModal(true)}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label htmlFor="familyContribution">Est. Family Contribution ($/yr)</label>
+                      <input
+                        type="number"
+                        id="familyContribution"
+                        name="familyContribution"
+                        placeholder="e.g. 40,000"
+                        value={formData.familyContribution}
+                        onChange={handleChange}
+                        className={invalidFields.includes('familyContribution') ? 'error-input' : ''}
+                      />
+                    </div>
+                  </div>
                   <div className="input-row">
                     <div className="input-group">
                       <label htmlFor="loanInterest">Loan Interest (%)</label>
@@ -954,7 +1058,7 @@ const Calculator = () => {
 
             <div className="collapsible-section">
               <button type="button" className={`section-toggle ${!sections.payments ? 'closed' : ''}`} onClick={() => toggleSection('payments')}>
-                <span>Payments</span>
+                <span>ROI</span>
                 <span>{sections.payments ? '−' : '+'}</span>
               </button>
               {sections.payments && (
@@ -1023,7 +1127,7 @@ const Calculator = () => {
               >
                 {showLeftPanel ? <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg> : <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>}
               </button>
-              <h3>Costs & Interest</h3>
+              <h3>Estimates & Summaries</h3>
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button type="button" className="schedule-button" onClick={handleSave} aria-label="Save" title="Save">
@@ -1123,7 +1227,7 @@ const Calculator = () => {
                   <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(getMonthlyGross())}</td>
                 </tr>
                 <tr>
-                  <td>Estimated Monthly Taxes</td>
+                  <td>Estimated Taxes</td>
                   <td style={{ textAlign: 'right', color: '#ef4444' }}>-{formatCurrency(getMonthlyTax())}</td>
                   <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(getMonthlyTakeHome())}</td>
                 </tr>
@@ -1140,11 +1244,20 @@ const Calculator = () => {
                   </td>
                 </tr>
               </tbody>
+              <tfoot>
+                <tr style={{ borderTop: '2px solid #cbd5e1' }}>
+                  <td style={{ fontWeight: '800', paddingTop: '0.75rem', color: '#1e293b' }}>Net Monthly Cash Flow</td>
+                  <td></td>
+                  <td style={{ textAlign: 'right', fontWeight: '800', paddingTop: '0.75rem', fontSize: '1.1rem', color: calculateNetMonthlyCashFlow() >= 0 ? '#10b981' : '#ef4444' }}>
+                    {formatCurrency(calculateNetMonthlyCashFlow())}
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </div>
           <div className="result-card">
             <h4 style={{ margin: 0, color: '#334155' }}>
-              10-Year Savings Projection
+              10-Year Return On Investment (ROI)
               <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                 <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
@@ -1153,14 +1266,14 @@ const Calculator = () => {
               </span>
             </h4>
             <div className="result-item">
-              <h4>Total 401k Contribution</h4>
-              <div className="value">{formatCurrency(calculateTenYear401k())}</div>
-            </div>
-            <div className="result-item">
               <h4>Accumulated Net Cash Flow</h4>
               <div className="value" style={{ color: calculateTenYearNetFlow() >= 0 ? '#10b981' : '#ef4444' }}>
                 {formatCurrency(calculateTenYearNetFlow())}
               </div>
+            </div>
+            <div className="result-item">
+              <h4>Total 401k Contribution</h4>
+              <div className="value">{formatCurrency(calculateTenYear401k())}</div>
             </div>
             <div className="result-item">
               <h4>Total Projected Savings</h4>
@@ -1820,6 +1933,19 @@ const Calculator = () => {
                   </tr>
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showClearConfirmation && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px' }}>
+            <h3 style={{ marginTop: 0 }}>Clear Data?</h3>
+            <p>Are you sure you want to clear all input fields? This action cannot be undone.</p>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+              <button className="secondary-button" style={{ flex: 1 }} onClick={() => setShowClearConfirmation(false)}>Cancel</button>
+              <button className="secondary-button" style={{ flex: 1, background: '#ef4444', color: 'white', borderColor: '#ef4444' }} onClick={confirmClearForm}>Clear All</button>
             </div>
           </div>
         </div>
