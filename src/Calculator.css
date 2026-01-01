@@ -834,9 +834,6 @@
   font-weight: 800;
   line-height: 1;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
   text-align: center;
 }
 
@@ -863,6 +860,12 @@
   z-index: 100;
 }
 
+.settings-menu hr {
+  margin: 0.5rem 0;
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+}
+
 .settings-option {
   display: flex;
   align-items: center;
@@ -877,6 +880,11 @@
 
 .settings-option:hover {
   background: #f1f5f9;
+}
+
+.settings-option.action-item {
+  color: #334155;
+  font-weight: 500;
 }
 
 .settings-option input[type="checkbox"] {
@@ -905,7 +913,7 @@
   border-radius: 0.5rem;
   padding: 1rem;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  width: 350px;
+  width: 320px;
   max-height: 80vh;
   overflow-y: auto;
   z-index: 100;
@@ -921,7 +929,6 @@
   }
   .navbar-metrics .value {
     font-size: 1.1rem;
-    max-width: 140px;
   }
   .navbar-metrics .label {
     font-size: 0.65rem;
