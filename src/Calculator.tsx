@@ -407,6 +407,16 @@ const Calculator = () => {
     setTaxRates(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleTaxClear = () => {
+    setTaxRates({
+      federal: '',
+      state: '',
+      medicare: '',
+      socialSecurity: '',
+      city: ''
+    });
+  };
+
   const handleExpensesDone = () => {
     const total = Object.values(expensesBreakdown).reduce((acc, val) => acc + (parseFloat(val) || 0), 0);
     setFormData(prev => ({ ...prev, expenses: total.toString() }));
@@ -472,13 +482,11 @@ const Calculator = () => {
   };
 
   const handleLoadComparison = (college: SavedCollege) => {
-    if (window.confirm(`Load data for ${college.name}? Unsaved changes to current inputs will be lost.`)) {
-      setFormData(college.data.formData);
-      setTuitionBreakdown(college.data.tuitionBreakdown);
-      setExpensesBreakdown(college.data.expensesBreakdown);
-      setTaxRates(college.data.taxRates);
-      setInflationRate(college.data.inflationRate);
-    }
+    setFormData(college.data.formData);
+    setTuitionBreakdown(college.data.tuitionBreakdown);
+    setExpensesBreakdown(college.data.expensesBreakdown);
+    setTaxRates(college.data.taxRates);
+    setInflationRate(college.data.inflationRate);
   };
 
   const handleRemoveComparison = (e: React.MouseEvent, id: string) => {
@@ -1456,10 +1464,33 @@ const Calculator = () => {
               <div className="comparison-list">
                 {comparedColleges.map(college => {
                   const metrics = calculateMetrics(college.data);
+                  const isSelected = formData.collegeName.toLowerCase() === college.name.toLowerCase();
                   return (
-                    <div key={college.id} className="comparison-card" onClick={() => handleLoadComparison(college)} title="Click to load data">
+                    <div 
+                      key={college.id} 
+                      className="comparison-card" 
+                      onClick={() => handleLoadComparison(college)} 
+                      title={isSelected ? "Currently viewing" : "Click to load data"}
+                      style={isSelected ? { border: '2px solid #6366f1', backgroundColor: '#eff6ff' } : undefined}
+                    >
                       <div className="comparison-card-header">
-                        <span className="college-name">{college.name}</span>
+                        <span className="college-name">
+                          {college.name}
+                          {isSelected && (
+                            <span style={{ 
+                              fontSize: '0.7rem', 
+                              marginLeft: '0.5rem', 
+                              color: '#4338ca', 
+                              backgroundColor: '#e0e7ff', 
+                              padding: '0.1rem 0.4rem', 
+                              borderRadius: '1rem',
+                              verticalAlign: 'middle',
+                              fontWeight: 'normal'
+                            }}>
+                              Active
+                            </span>
+                          )}
+                        </span>
                         <button 
                           className="comparison-remove" 
                           onClick={(e) => handleRemoveComparison(e, college.id)}
@@ -1955,9 +1986,18 @@ const Calculator = () => {
                 </div>
               </div>
 
-              <button className="calculate-button" onClick={() => setShowTaxModal(false)} style={{ marginTop: '1rem' }}>
-                Done
-              </button>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <button className="calculate-button" onClick={() => setShowTaxModal(false)} style={{ flex: 1 }}>
+                  Done
+                </button>
+                <button 
+                  type="button" 
+                  className="calculate-button" 
+                  onClick={handleTaxClear}
+                  style={{ flex: 1, background: '#64748b' }}>
+                  Clear All
+                </button>
+              </div>
             </div>
           </div>
         </div>
