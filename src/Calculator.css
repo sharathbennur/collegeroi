@@ -686,34 +686,62 @@
   opacity: 0;
 }
 
-.comparison-carousel {
+.comparison-list {
   display: flex;
-  gap: 0.5rem;
-  margin-left: auto;
-  align-items: center;
-  padding-left: 1rem;
-  z-index: 20;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
 }
 
-.comparison-item {
+.comparison-card {
   background: rgba(255, 255, 255, 0.5);
   border: 1px solid #cbd5e1;
-  border-radius: 2rem;
-  padding: 0.25rem 0.5rem 0.25rem 0.75rem;
-  font-size: 0.8rem;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
   transition: all 0.2s;
-  white-space: nowrap;
+  position: relative;
 }
 
-.comparison-item:hover {
+.comparison-card:hover {
   background: white;
   border-color: #6366f1;
-  color: #6366f1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
+
+.comparison-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+  padding-right: 1.5rem;
+}
+
+.comparison-card .college-name {
+  font-weight: 700;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.comparison-metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
+.comparison-metric .label {
+  color: #64748b;
+}
+
+.comparison-metric .value {
+  font-weight: 700;
+}
+
+.comparison-metric .value.positive { color: #10b981; }
+.comparison-metric .value.negative { color: #ef4444; }
 
 .comparison-remove {
   border: none;
@@ -726,6 +754,9 @@
   align-items: center;
   justify-content: center;
   transition: color 0.2s, background-color 0.2s;
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
 }
 
 .comparison-remove:hover {
@@ -859,10 +890,29 @@
   position: relative;
   z-index: 30;
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.guidance-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  width: 350px;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 100;
 }
 
 .settings-container.has-comparisons {
-  margin-left: 0.5rem;
+  margin-left: auto;
 }
 
 @media (max-width: 1200px) {
@@ -901,15 +951,6 @@
 
   .navbar-metrics .value {
     font-size: 1rem;
-  }
-
-  .comparison-carousel {
-    margin-left: 0;
-    padding-left: 0;
-    margin-top: 0.5rem;
-    width: 100%;
-    justify-content: center;
-    flex-wrap: wrap;
   }
 
   .settings-container,

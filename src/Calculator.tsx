@@ -167,28 +167,55 @@ const Calculator = () => {
   const [showFloatingMetrics, setShowFloatingMetrics] = useState(true);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
+  const [showGuidanceMenu, setShowGuidanceMenu] = useState(false);
 
   useEffect(() => {
     document.title = 'CollegeROI - Calculator';
+    
     const savedState = localStorage.getItem('collegeRoiCalcState');
+    let parsedState: any = null;
     if (savedState) {
       try {
-        const parsedState = JSON.parse(savedState);
+        parsedState = JSON.parse(savedState);
+      } catch (error) {
+        console.error('Error loading saved state:', error);
+      }
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const sharedData = params.get('data');
+    let loadedFromShare = false;
+
+    if (sharedData) {
+      try {
+        const decoded = JSON.parse(decodeURIComponent(atob(sharedData)));
+        if (decoded.formData) setFormData(decoded.formData);
+        if (decoded.tuitionBreakdown) setTuitionBreakdown(decoded.tuitionBreakdown);
+        if (decoded.expensesBreakdown) setExpensesBreakdown(decoded.expensesBreakdown);
+        if (decoded.taxRates) setTaxRates(decoded.taxRates);
+        if (decoded.inflationRate) setInflationRate(decoded.inflationRate);
+        loadedFromShare = true;
+      } catch (error) {
+        console.error('Error loading shared state:', error);
+      }
+    }
+
+    if (parsedState) {
+      if (parsedState.sections) setSections(parsedState.sections);
+      if (parsedState.showSchedule !== undefined) setShowSchedule(parsedState.showSchedule);
+      if (parsedState.scheduleOpen !== undefined) setScheduleOpen(parsedState.scheduleOpen);
+      if (parsedState.expandedYears) setExpandedYears(parsedState.expandedYears);
+      if (parsedState.showInstructions !== undefined) setShowInstructions(parsedState.showInstructions);
+      if (parsedState.comparedColleges) setComparedColleges(parsedState.comparedColleges);
+      if (parsedState.showFloatingMetrics !== undefined) setShowFloatingMetrics(parsedState.showFloatingMetrics);
+
+      if (!loadedFromShare) {
         if (parsedState.formData) setFormData(parsedState.formData);
         if (parsedState.tuitionBreakdown) setTuitionBreakdown(parsedState.tuitionBreakdown);
         if (parsedState.expensesBreakdown) setExpensesBreakdown(parsedState.expensesBreakdown);
         if (parsedState.taxRates) setTaxRates(parsedState.taxRates);
         if (parsedState.inflationRate) setInflationRate(parsedState.inflationRate);
-        if (parsedState.sections) setSections(parsedState.sections);
         if (parsedState.paymentSchedule) setPaymentSchedule(parsedState.paymentSchedule);
-        if (parsedState.showSchedule !== undefined) setShowSchedule(parsedState.showSchedule);
-        if (parsedState.scheduleOpen !== undefined) setScheduleOpen(parsedState.scheduleOpen);
-        if (parsedState.expandedYears) setExpandedYears(parsedState.expandedYears);
-        if (parsedState.showInstructions !== undefined) setShowInstructions(parsedState.showInstructions);
-        if (parsedState.comparedColleges) setComparedColleges(parsedState.comparedColleges);
-        if (parsedState.showFloatingMetrics !== undefined) setShowFloatingMetrics(parsedState.showFloatingMetrics);
-      } catch (error) {
-        console.error('Error loading saved state:', error);
       }
     }
   }, []);
@@ -526,6 +553,26 @@ const Calculator = () => {
     setTimeout(() => setSaveSuccess(false), 2000);
   };
 
+  const handleShare = () => {
+    const stateToShare = {
+      formData,
+      tuitionBreakdown,
+      expensesBreakdown,
+      taxRates,
+      inflationRate
+    };
+    try {
+      const encoded = btoa(encodeURIComponent(JSON.stringify(stateToShare)));
+      const url = `${window.location.origin}${window.location.pathname}?data=${encoded}`;
+      navigator.clipboard.writeText(url).then(() => {
+        alert('Shareable link copied to clipboard!');
+      });
+    } catch (e) {
+      console.error('Error generating share link', e);
+      alert('Failed to generate share link.');
+    }
+  };
+
   const handleClearSave = () => {
     if (window.confirm('Are you sure you want to clear all saved data? This action cannot be undone.')) {
       localStorage.removeItem('collegeRoiCalcState');
@@ -821,31 +868,68 @@ const Calculator = () => {
           </div>
         )}
         
-        {comparedColleges.length > 0 && (
-          <div className="comparison-carousel">
-            <button 
-              className="secondary-button" 
-              style={{ fontSize: '0.75rem', padding: '0.25rem 0.75rem', marginRight: '0.5rem' }}
-              onClick={() => setShowComparisonModal(true)}
-            >
-              Compare All
-            </button>
-            {comparedColleges.map(college => (
-              <div key={college.id} className="comparison-item" onClick={() => handleLoadComparison(college)} title="Click to load data">
-                <span>{college.name}</span>
-                <button 
-                  className="comparison-remove" 
-                  onClick={(e) => handleRemoveComparison(e, college.id)}
-                  title="Remove from comparison"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <div className={`settings-container ${comparedColleges.length > 0 ? 'has-comparisons' : ''}`}>
+        <div className="settings-container">
+          <button
+            className="secondary-button"
+            onClick={handleShare}
+            title="Share Scenario"
+            style={{ padding: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+          </button>
+          <button
+            className="secondary-button"
+            onClick={() => setShowGuidanceMenu(!showGuidanceMenu)}
+            title="Guidance"
+            style={{ padding: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          </button>
+          {showGuidanceMenu && (
+            <div className="guidance-menu">
+              <h3 style={{ marginTop: 0, marginBottom: '1rem', fontSize: '1.1rem' }}>Guidance</h3>
+              {!selectedTopic ? (
+                <>
+                  <div style={{ position: 'relative', marginBottom: '1rem' }}>
+                    <input
+                      type="text"
+                      placeholder="Search help topics..."
+                      value={guidanceSearch}
+                      onChange={(e) => setGuidanceSearch(e.target.value)}
+                      className="guidance-search"
+                      style={{ marginBottom: 0, paddingRight: '2.5rem' }}
+                    />
+                    {guidanceSearch && (
+                      <button
+                        onClick={() => setGuidanceSearch('')}
+                        className="clear-search-button"
+                        aria-label="Clear search"
+                        title="Clear search"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                      </button>
+                    )}
+                  </div>
+                  <ul className="topic-list">
+                    {filteredTopics.map(topic => (
+                      <li key={topic.id} className="topic-item" onClick={() => setSelectedTopic(topic)}>
+                        {topic.title}
+                      </li>
+                    ))}
+                    {filteredTopics.length === 0 && (
+                      <li style={{ color: '#64748b', fontStyle: 'italic', fontSize: '0.9rem' }}>No topics found.</li>
+                    )}
+                  </ul>
+                </>
+              ) : (
+                <div className="topic-detail">
+                  <button className="back-link" onClick={() => setSelectedTopic(null)}>← Back to topics</button>
+                  <h4>{selectedTopic.title}</h4>
+                  <p>{selectedTopic.content}</p>
+                </div>
+              )}
+            </div>
+          )}
           <button
             className="secondary-button"
             onClick={() => setShowSettingsMenu(!showSettingsMenu)}
@@ -910,7 +994,7 @@ const Calculator = () => {
                 <strong>Analyze:</strong> Review the estimated cost, loan, and cash flow projections in the center column.
               </li>
               <li>
-                <strong>Compare:</strong> Click "Add to Comparison" to save up to 5 colleges and view them side-by-side using the "Compare All" button.
+                <strong>Compare:</strong> Click "Add to Comparison" to save up to 5 colleges and view them side-by-side using the "Detailed Comparison" button.
               </li>
             </ol>
           </div>
@@ -1146,7 +1230,7 @@ const Calculator = () => {
                 type="button" 
                 className="toggle-button" 
                 onClick={() => setShowRightPanel(!showRightPanel)}
-                title={showRightPanel ? "Collapse Guidance" : "Expand Guidance"}
+                title={showRightPanel ? "Collapse Compare" : "Expand Compare"}
               >
                 {showRightPanel ? <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg> : <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>}
               </button>
@@ -1350,45 +1434,54 @@ const Calculator = () => {
         </div>
         {showRightPanel && (
           <div className="column right-col">
-            <h3>Guidance</h3>
-            {!selectedTopic ? (
-              <>
-                <div style={{ position: 'relative', marginBottom: '1rem' }}>
-                  <input
-                    type="text"
-                    placeholder="Search help topics..."
-                    value={guidanceSearch}
-                    onChange={(e) => setGuidanceSearch(e.target.value)}
-                    className="guidance-search"
-                    style={{ marginBottom: 0, paddingRight: '2.5rem' }}
-                  />
-                  {guidanceSearch && (
-                    <button
-                      onClick={() => setGuidanceSearch('')}
-                      className="clear-search-button"
-                      aria-label="Clear search"
-                      title="Clear search"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                    </button>
-                  )}
-                </div>
-                <ul className="topic-list">
-                  {filteredTopics.map(topic => (
-                    <li key={topic.id} className="topic-item" onClick={() => setSelectedTopic(topic)}>
-                      {topic.title}
-                    </li>
-                  ))}
-                  {filteredTopics.length === 0 && (
-                    <li style={{ color: '#64748b', fontStyle: 'italic', fontSize: '0.9rem' }}>No topics found.</li>
-                  )}
-                </ul>
-              </>
+            <div className="section-header">
+              <h3>Compare</h3>
+              {comparedColleges.length > 0 && (
+                <button 
+                  className="secondary-button" 
+                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                  onClick={() => setShowComparisonModal(true)}
+                >
+                  Detailed Comparison
+                </button>
+              )}
+            </div>
+            
+            {comparedColleges.length === 0 ? (
+              <p style={{ color: '#64748b', fontStyle: 'italic', fontSize: '0.9rem' }}>
+                Add colleges to comparison to see them here.
+              </p>
             ) : (
-              <div className="topic-detail">
-                <button className="back-link" onClick={() => setSelectedTopic(null)}>← Back to topics</button>
-                <h4>{selectedTopic.title}</h4>
-                <p>{selectedTopic.content}</p>
+              <div className="comparison-list">
+                {comparedColleges.map(college => {
+                  const metrics = calculateMetrics(college.data);
+                  return (
+                    <div key={college.id} className="comparison-card" onClick={() => handleLoadComparison(college)} title="Click to load data">
+                      <div className="comparison-card-header">
+                        <span className="college-name">{college.name}</span>
+                        <button 
+                          className="comparison-remove" 
+                          onClick={(e) => handleRemoveComparison(e, college.id)}
+                          title="Remove from comparison"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                      </div>
+                      <div className="comparison-metric">
+                        <span className="label">Net Monthly Flow</span>
+                        <span className={`value ${metrics.netMonthlyCashFlow >= 0 ? 'positive' : 'negative'}`}>
+                          {formatCurrency(metrics.netMonthlyCashFlow)}
+                        </span>
+                      </div>
+                      <div className="comparison-metric">
+                        <span className="label">10-Year ROI</span>
+                        <span className={`value ${metrics.totalSavings >= 0 ? 'positive' : 'negative'}`}>
+                          {formatCurrency(metrics.totalSavings)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
