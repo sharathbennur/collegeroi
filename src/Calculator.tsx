@@ -168,6 +168,10 @@ const Calculator = () => {
   const [showMainMenu, setShowMainMenu] = useState(false);
   const [showClearConfirmation, setShowClearConfirmation] = useState(false);
   const [showGuidanceMenu, setShowGuidanceMenu] = useState(false);
+  const [showIntroSurvey, setShowIntroSurvey] = useState(false);
+  const [surveyStep, setSurveyStep] = useState(1);
+  const [surveySelectedColleges, setSurveySelectedColleges] = useState<typeof colleges>([]);
+  const [surveyFinancials, setSurveyFinancials] = useState({ aid: '', contribution: '' });
 
   useEffect(() => {
     document.title = 'CollegeROI - Calculator';
@@ -217,6 +221,8 @@ const Calculator = () => {
         if (parsedState.inflationRate) setInflationRate(parsedState.inflationRate);
         if (parsedState.paymentSchedule) setPaymentSchedule(parsedState.paymentSchedule);
       }
+    } else if (!loadedFromShare) {
+      setShowIntroSurvey(true);
     }
   }, []);
 
@@ -536,6 +542,77 @@ const Calculator = () => {
     }, 100);
   };
 
+  const handleSurveyToggleCollege = (college: typeof colleges[0]) => {
+    if (surveySelectedColleges.find(c => c.name === college.name)) {
+      setSurveySelectedColleges(prev => prev.filter(c => c.name !== college.name));
+    } else {
+      if (surveySelectedColleges.length < 5) {
+        setSurveySelectedColleges(prev => [...prev, college]);
+      }
+    }
+  };
+
+  const handleSurveyFinish = () => {
+    const annualAid = parseFloat(surveyFinancials.aid) || 0;
+    const annualContrib = parseFloat(surveyFinancials.contribution) || 0;
+    
+    const newComparedColleges: SavedCollege[] = surveySelectedColleges.map(c => {
+      const rate = 0.03;
+      const t1 = c.annualTuition;
+      const rb1 = c.annualRoomBoard;
+      const calculateYear = (val: number, yearIndex: number) => Math.round(val * Math.pow(1 + rate, yearIndex));
+      
+      const t2 = calculateYear(t1, 1);
+      const rb2 = calculateYear(rb1, 1);
+      const t3 = calculateYear(t1, 2);
+      const rb3 = calculateYear(rb1, 2);
+      const t4 = calculateYear(t1, 3);
+      const rb4 = calculateYear(rb1, 3);
+      
+      const totalTuition = (t1 + rb1) + (t2 + rb2) + (t3 + rb3) + (t4 + rb4);
+      
+      const tuitionBreakdownData = {
+        tuition1: t1.toString(), roomBoard1: rb1.toString(), financialAid1: annualAid.toString(),
+        tuition2: t2.toString(), roomBoard2: rb2.toString(), financialAid2: annualAid.toString(),
+        tuition3: t3.toString(), roomBoard3: rb3.toString(), financialAid3: annualAid.toString(),
+        tuition4: t4.toString(), roomBoard4: rb4.toString(), financialAid4: annualAid.toString(),
+      };
+
+      const formDataData = {
+        collegeName: c.name,
+        tuition: totalTuition.toString(),
+        financialAid: (annualAid * 4).toString(),
+        familyContribution: annualContrib.toString(),
+        loanInterest: '6.5',
+        loanTerm: '10',
+        salary: c.medianSalary.toString(),
+        expenses: '3800'
+      };
+
+      return {
+        id: Date.now().toString() + Math.random().toString().substr(2, 9),
+        name: c.name,
+        data: {
+          formData: formDataData,
+          tuitionBreakdown: tuitionBreakdownData,
+          expensesBreakdown: { ...expensesBreakdown },
+          taxRates: { ...taxRates },
+          inflationRate: '3'
+        }
+      };
+    });
+
+    setComparedColleges(newComparedColleges);
+    saveStateToLocalStorage(newComparedColleges);
+    
+    if (newComparedColleges.length > 0) {
+      handleLoadComparison(newComparedColleges[0]);
+    }
+    
+    setShowIntroSurvey(false);
+    setShowComparisonModal(true);
+  };
+
   const saveStateToLocalStorage = (collegesToSave = comparedColleges) => {
     const state = {
       formData,
@@ -580,6 +657,14 @@ const Calculator = () => {
       console.error('Error generating share link', e);
       alert('Failed to generate share link.');
     }
+  };
+
+  const handleRestartSurvey = () => {
+    setSurveyStep(1);
+    setSurveySelectedColleges([]);
+    setSurveyFinancials({ aid: '', contribution: '' });
+    setShowIntroSurvey(true);
+    setShowMainMenu(false);
   };
 
   const handleClearSave = () => {
@@ -947,6 +1032,10 @@ const Calculator = () => {
               <div className="settings-option action-item" onClick={() => { setShowGuidanceMenu(true); setShowMainMenu(false); }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                 Open Guidance
+              </div>
+              <div className="settings-option action-item" onClick={handleRestartSurvey}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>
+                Restart Intro Survey
               </div>
               <hr />
               <label className="settings-option">
@@ -2008,7 +2097,7 @@ const Calculator = () => {
           <div className="modal-content comparison-modal-content">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h3 style={{ margin: 0 }}>
-                College Comparison (Estimates)
+                College Comparison (Estimated Costs & ROI)
                 <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                   <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
@@ -2081,6 +2170,117 @@ const Calculator = () => {
               <button className="secondary-button" style={{ flex: 1 }} onClick={() => setShowClearConfirmation(false)}>Cancel</button>
               <button className="secondary-button" style={{ flex: 1, background: '#ef4444', color: 'white', borderColor: '#ef4444' }} onClick={confirmClearForm}>Clear All</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showIntroSurvey && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h2 style={{ marginTop: 0, color: '#334155' }}>Welcome to CollegeROI!</h2>
+              <p style={{ color: '#64748b' }}>Let's get you set up with a quick comparison.</p>
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                {[1, 2, 3].map(step => (
+                  <div key={step} style={{ 
+                    flex: 1, 
+                    height: '4px', 
+                    background: step <= surveyStep ? '#6366f1' : '#e2e8f0',
+                    borderRadius: '2px'
+                  }} />
+                ))}
+              </div>
+            </div>
+
+            {surveyStep === 1 && (
+              <div>
+                <h3 style={{ fontSize: '1.1rem' }}>Select 2-5 colleges to compare</h3>
+                <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '1rem' }}>
+                  Choose from these popular colleges to see how the calculator works. You can add others later.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem' }}>
+                  {colleges.slice(0, 20).map(college => {
+                    const isSelected = surveySelectedColleges.find(c => c.name === college.name);
+                    return (
+                      <div 
+                        key={college.rank}
+                        onClick={() => handleSurveyToggleCollege(college)}
+                        style={{
+                          padding: '0.75rem',
+                          border: isSelected ? '2px solid #6366f1' : '1px solid #e2e8f0',
+                          borderRadius: '0.5rem',
+                          cursor: 'pointer',
+                          backgroundColor: isSelected ? '#eff6ff' : 'white',
+                          fontSize: '0.9rem',
+                          fontWeight: isSelected ? 'bold' : 'normal'
+                        }}
+                      >
+                        {college.name}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+                  <button 
+                    className="calculate-button" 
+                    disabled={surveySelectedColleges.length < 2}
+                    onClick={() => setSurveyStep(2)}
+                    style={{ opacity: surveySelectedColleges.length < 2 ? 0.5 : 1 }}
+                  >
+                    Next ({surveySelectedColleges.length} selected)
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {surveyStep === 2 && (
+              <div>
+                <h3 style={{ fontSize: '1.1rem' }}>Financial Estimates</h3>
+                <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '1.5rem' }}>
+                  Enter rough estimates to apply to all selected colleges. You can refine these individually later.
+                </p>
+                <div className="input-group">
+                  <label>Estimated Annual Financial Aid ($)</label>
+                  <input 
+                    type="number" 
+                    placeholder="e.g. 5000"
+                    value={surveyFinancials.aid}
+                    onChange={(e) => setSurveyFinancials(prev => ({ ...prev, aid: e.target.value }))}
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Estimated Annual Family Contribution ($)</label>
+                  <input 
+                    type="number" 
+                    placeholder="e.g. 10000"
+                    value={surveyFinancials.contribution}
+                    onChange={(e) => setSurveyFinancials(prev => ({ ...prev, contribution: e.target.value }))}
+                  />
+                </div>
+                <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between' }}>
+                  <button className="secondary-button" onClick={() => setSurveyStep(1)}>Back</button>
+                  <button className="calculate-button" onClick={() => setSurveyStep(3)}>Next</button>
+                </div>
+              </div>
+            )}
+
+            {surveyStep === 3 && (
+              <div>
+                <h3 style={{ fontSize: '1.1rem' }}>Loan Assumptions</h3>
+                <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '0.5rem', marginBottom: '1.5rem', border: '1px solid #e2e8f0' }}>
+                  <p style={{ margin: '0 0 1rem 0' }}>For this simulation, we will assume:</p>
+                  <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#334155' }}>
+                    <li style={{ marginBottom: '0.5rem' }}><strong>6.5%</strong> Interest Rate</li>
+                    <li><strong>10 Year</strong> Loan Term</li>
+                  </ul>
+                  <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '1rem' }}>You can adjust these settings for each college later.</p>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <button className="secondary-button" onClick={() => setSurveyStep(2)}>Back</button>
+                  <button className="calculate-button" onClick={handleSurveyFinish}>See Comparison</button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
