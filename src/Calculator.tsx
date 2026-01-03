@@ -145,7 +145,7 @@ const Calculator = () => {
     transportation: '200',
     healthCare: '150',
     miscellaneous: '200',
-    contribution401k: '500'
+    contribution401k: '0'
   });
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [showTaxModal, setShowTaxModal] = useState(false);
@@ -703,7 +703,7 @@ const Calculator = () => {
         transportation: '200',
         healthCare: '150',
         miscellaneous: '200',
-        contribution401k: '500'
+        contribution401k: '0'
       });
       setTaxRates({
         federal: '12.0',
@@ -1454,7 +1454,15 @@ const Calculator = () => {
               </div>
             </div>
             <div className="result-item">
-              <h4>Total 401k Contribution</h4>
+              <h4>
+                Total 401k Contribution
+                <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                  <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                    The total amount contributed to your 401k retirement account over 10 years. This money is saved for your future and reduces your taxable income.
+                  </span>
+                </span>
+              </h4>
               <div className="value">{formatCurrency(calculateTenYear401k())}</div>
             </div>
             <div className="result-item">
@@ -1913,7 +1921,7 @@ const Calculator = () => {
                     401k Contribution
                     <span className="info-icon">
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                      <span className="tooltip-text">Monthly retirement savings contribution</span>
+                      <span className="tooltip-text" style={{ width: '220px' }}>A tax-advantaged retirement savings plan. Contributions are often deducted from your paycheck before taxes.</span>
                     </span>
                   </label>
                   <input

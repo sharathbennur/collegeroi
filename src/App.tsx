@@ -5,6 +5,7 @@ import './Home.css'
 
 const Home = lazy(() => import('./Home'));
 const Calculator = lazy(() => import('./Calculator'));
+const NotFound = lazy(() => import('./NotFound'));
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/calculator" element={<Calculator />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
     </Router>
