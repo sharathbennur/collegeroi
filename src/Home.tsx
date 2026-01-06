@@ -29,12 +29,10 @@ const Home = () => {
                 Welcome to <span className="brand-name">CollegeROI 🚀</span>
               </h1>
               <p className="tagline">
-                Empowering Students, Parents & Guardians - make data-driven <span className="info-icon" style={{ margin: 0, color: 'inherit', borderBottom: '1px dotted currentColor' }}>
-                ROI
-                <span className="tooltip-text" style={{ width: '200px' }}>
-                  Return on Investment: A measure of the profitability of an investment relative to its cost.
-                </span>
-              </span> college decisions. 
+                Empowering Students, Parents & Guardians - make data-driven &nbsp;
+                <span title="Return on Investment: A measure of the profitability of an investment relative to its cost." style={{ margin: 0, color: 'inherit', cursor: 'help', borderBottom: '1px dotted currentColor' }}>
+                  ROI
+                </span>-based college decisions.
               </p>
             </header>
 

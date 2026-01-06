@@ -49,6 +49,11 @@ const helpTopics = [
     )
   },
   {
+    id: 'interest-rates',
+    title: 'Student Loan Interest Rates',
+    content: 'Federal student loan interest rates are fixed by Congress. For undergraduates (2024-25), the rate is 6.53%. Private loans depend on credit history and can range from ~4% to 15%+. This calculator defaults to 6.5% but you should adjust based on your expected loan type.'
+  },
+  {
     id: 'tuition',
     title: 'Tuition Breakdown',
     content: 'Helps you enter the yearly tuition and room & board costs for each of the 4 years. You can also use the "Auto-fill" feature on the main form to populate these values for popular colleges. Use the Inflation % feature at the top to automatically calculate future year costs based on the first year values and inflation rates.'
