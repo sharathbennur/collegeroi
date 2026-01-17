@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom/vitest';
 import { describe, it, expect, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
-import Home from './Home';
+import Home from '../Home';
 
 // Mock the image import
 vi.mock('./assets/collegeroi-screenshot.png', () => ({
@@ -33,7 +33,7 @@ describe('Home Page', () => {
 
     expect(screen.getAllByRole('heading', { name: /For Students/i })[0]).toBeInTheDocument();
     expect(screen.getAllByText(/Is college worth it\?/i)[0]).toBeInTheDocument();
-    
+
     expect(screen.getAllByRole('heading', { name: /For Guardians/i })[0]).toBeInTheDocument();
     expect(screen.getAllByText(/Is your college investment worth it\?/i)[0]).toBeInTheDocument();
   });
@@ -48,7 +48,7 @@ describe('Home Page', () => {
 
     const enterButton = screen.getAllByRole('button', { name: /Enter the application/i })[0];
     expect(enterButton).toBeInTheDocument();
-    
+
     await user.click(enterButton);
     expect(enterButton).toBeInTheDocument();
   });
