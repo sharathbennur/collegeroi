@@ -80,6 +80,6 @@ describe('Home Page', () => {
     );
     const images = screen.getAllByAltText('CollegeROI Calculator Dashboard');
     expect(images[0]).toBeInTheDocument();
-    expect(images[0]).toHaveAttribute('src', '/assets/collegeroi-screenshot.png');
+    expect(images[0]).toHaveAttribute('src', '/src/assets/collegeroi-screenshot.png');
   });
 });
