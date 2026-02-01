@@ -70,4 +70,14 @@ export default defineConfig([
     },
   },
 ])
+
+```
+## To run tests
+```bash
+npm test -- run
+```
+
+## To run in dev mode
+```bash
+npm run dev
 ```

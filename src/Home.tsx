@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import './Home.css';
 import screenshot from './assets/collegeroi-screenshot.png';
+import CookiePolicy from './CookiePolicy';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -42,8 +43,8 @@ const Home = () => {
                 <div className="feature-content">
                   <h2>For Students</h2>
                   <p>
-                    Is college worth it? Answer that simple but critical question with our 
-                    interactive tools that take into consideration your selected college and 
+                    Is college worth it? Answer that simple but critical question with our
+                    interactive tools that take into consideration your selected college and
                     your situation, and provides a custom ROI just for you.
                   </p>
                 </div>
@@ -54,8 +55,8 @@ const Home = () => {
                 <div className="feature-content">
                   <h2>For Guardians</h2>
                   <p>
-                    Is your college investment worth it? Guide your student through this major 
-                    financial decision with clear ROI projections based on your family's situation. 
+                    Is your college investment worth it? Guide your student through this major
+                    financial decision with clear ROI projections based on your family's situation.
                     Plan with data, not just happy thoughts.
                   </p>
                 </div>
@@ -66,8 +67,8 @@ const Home = () => {
               <p className="mission-statement">
                 Ready to start the journey?
               </p>
-              <button 
-                className="enter-button" 
+              <button
+                className="enter-button"
                 onClick={handleEnter}
                 aria-label="Enter the application"
               >
@@ -87,6 +88,7 @@ const Home = () => {
           <strong>Disclaimer:</strong> The financial projections, college costs, and tax estimates provided by this tool are calculations based on user inputs and assumptions. They are for informational purposes only and do not constitute professional financial, tax, or legal advice. Please consult with a qualified professional before making any financial decisions.
         </p>
       </footer>
+      <CookiePolicy />
     </div>
   );
 };
