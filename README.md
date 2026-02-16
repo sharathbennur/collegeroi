@@ -1,83 +1,95 @@
-# React + TypeScript + Vite
+# College ROI Calculator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A comprehensive tool designed to help students and families calculate the Return on Investment (ROI) for college education. This application enables users to estimate the total cost of attendance, including tuition, room & board, and other expenses, while also accounting for financial aid, family contributions, and student loans.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **College Expense Calculator**: Detailed breakdown of tuition, room & board, and other expenses over 4 years.
+- **Loan Estimation**: Calculate monthly loan payments, total interest, and projected payoff timelines.
+- **Financial Planning**: Input family contributions and financial aid to see their impact on total debt.
+- **Future Projections**: Estimate taxes, net monthly cash flow, and projected savings based on expected starting salaries.
+- **College Comparison**: Compare multiple colleges side-by-side to make informed financial decisions.
+- **Inflation Adjustment**: Automatically calculate future costs based on custom inflation rates.
+- **Privacy Focused**: All data is stored locally in your browser. No personal information is sent to external servers.
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Frontend**: [React 19](https://react.dev/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Build Tool**: [Vite](https://vitejs.dev/)
+- **Testing**: [Vitest](https://vitest.dev/)
+- **Hosting**: Firebase Hosting
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Follow these instructions to get a copy of the project up and running on your local machine.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Prerequisites
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- Node.js (v18 or higher recommended)
+- npm (usually comes with Node.js)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### Installation
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/sharathbennur/collegeroi.git
+    cd collegeroi
+    ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Running Locally
 
-```
-## To run tests
-```bash
-npm test -- run
-```
+To start the development server with Hot Module Replacement (HMR):
 
-## To run in dev mode
 ```bash
 npm run dev
 ```
+
+Open your browser and navigate to the URL shown in the terminal (usually `http://localhost:5173`).
+
+### Building for Production
+
+To create a production build:
+
+```bash
+npm run build
+```
+
+The built files will be in the `dist` directory.
+
+### Running Tests
+
+To run the test suite:
+
+```bash
+npm run test
+```
+
+### Linting
+
+To run the linter and check for code style issues:
+
+```bash
+npm run lint
+```
+
+## Contributing
+
+1.  Fork the project
+2.  Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License.
+
+## For Coding Assistants
+
+See [agents.md](./agents.md) for architectural details and conventions.
