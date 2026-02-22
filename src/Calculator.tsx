@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, type FormEvent, type KeyboardEvent, type C
 import { Link } from 'react-router-dom';
 import './Calculator.css';
 import { colleges } from './assets/colleges.ts';
+import AgentSidebar from './AgentSidebar';
 
 interface PaymentScheduleRow {
   month: number;
@@ -42,9 +43,9 @@ const helpTopics = [
         <br /><br />
         Try these tools:
         <br />
-        • <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer" style={{ color: '#6366f1' }}>ChatGPT</a>
+        • <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary-color)' }}>ChatGPT</a>
         <br />
-        • <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer" style={{ color: '#6366f1' }}>Gemini</a>
+        • <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary-color)' }}>Gemini</a>
       </>
     )
   },
@@ -177,10 +178,11 @@ const Calculator = () => {
   const [surveyStep, setSurveyStep] = useState(1);
   const [surveySelectedColleges, setSurveySelectedColleges] = useState<typeof colleges>([]);
   const [surveyFinancials, setSurveyFinancials] = useState({ aid: '', contribution: '' });
+  const [isAgentModeOpen, setIsAgentModeOpen] = useState(false);
 
   useEffect(() => {
     document.title = 'CollegeROI - Calculator';
-    
+
     const savedState = localStorage.getItem('collegeRoiCalcState');
     let parsedState: any = null;
     if (savedState) {
@@ -240,7 +242,7 @@ const Calculator = () => {
   };
 
   const toggleYear = (year: number) => {
-    setExpandedYears(prev => 
+    setExpandedYears(prev =>
       prev.includes(year) ? prev.filter(y => y !== year) : [...prev, year]
     );
   };
@@ -257,9 +259,9 @@ const Calculator = () => {
   const handleCollegeNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFormData(prev => ({ ...prev, collegeName: value }));
-    
+
     if (value.length > 0) {
-      const filtered = colleges.filter(c => 
+      const filtered = colleges.filter(c =>
         c.name.toLowerCase().includes(value.toLowerCase())
       );
       setSuggestions(filtered);
@@ -276,47 +278,47 @@ const Calculator = () => {
   };
 
   const handleSuggestionClick = (college: typeof colleges[0]) => {
-      const rate = 0.03;
-      const t1 = college.annualTuition;
-      const rb1 = college.annualRoomBoard;
+    const rate = 0.03;
+    const t1 = college.annualTuition;
+    const rb1 = college.annualRoomBoard;
 
-      const calculateYear = (val: number, yearIndex: number) => Math.round(val * Math.pow(1 + rate, yearIndex));
+    const calculateYear = (val: number, yearIndex: number) => Math.round(val * Math.pow(1 + rate, yearIndex));
 
-      const t2 = calculateYear(t1, 1);
-      const rb2 = calculateYear(rb1, 1);
-      const t3 = calculateYear(t1, 2);
-      const rb3 = calculateYear(rb1, 2);
-      const t4 = calculateYear(t1, 3);
-      const rb4 = calculateYear(rb1, 3);
+    const t2 = calculateYear(t1, 1);
+    const rb2 = calculateYear(rb1, 1);
+    const t3 = calculateYear(t1, 2);
+    const rb3 = calculateYear(rb1, 2);
+    const t4 = calculateYear(t1, 3);
+    const rb4 = calculateYear(rb1, 3);
 
-      const totalTuition = (t1 + rb1) + (t2 + rb2) + (t3 + rb3) + (t4 + rb4);
+    const totalTuition = (t1 + rb1) + (t2 + rb2) + (t3 + rb3) + (t4 + rb4);
 
-      setFormData(prev => ({
-        ...prev,
-        collegeName: college.name,
-        salary: college.medianSalary.toString(),
-        tuition: totalTuition.toString()
-      }));
+    setFormData(prev => ({
+      ...prev,
+      collegeName: college.name,
+      salary: college.medianSalary.toString(),
+      tuition: totalTuition.toString()
+    }));
 
-      setTuitionBreakdown({
-        tuition1: t1.toString(), roomBoard1: rb1.toString(),
-        financialAid1: '',
-        tuition2: t2.toString(), roomBoard2: rb2.toString(),
-        financialAid2: '',
-        tuition3: t3.toString(), roomBoard3: rb3.toString(),
-        financialAid3: '',
-        tuition4: t4.toString(), roomBoard4: rb4.toString(),
-        financialAid4: '',
-      });
-      
-      setInflationRate('3');
+    setTuitionBreakdown({
+      tuition1: t1.toString(), roomBoard1: rb1.toString(),
+      financialAid1: '',
+      tuition2: t2.toString(), roomBoard2: rb2.toString(),
+      financialAid2: '',
+      tuition3: t3.toString(), roomBoard3: rb3.toString(),
+      financialAid3: '',
+      tuition4: t4.toString(), roomBoard4: rb4.toString(),
+      financialAid4: '',
+    });
 
-      setSuggestions([]);
-      setShowSuggestions(false);
+    setInflationRate('3');
 
-      // Clear errors for these fields
-      setInvalidFields(prev => prev.filter(f => !['collegeName', 'salary', 'tuition'].includes(f)));
-      if (error) setError('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+
+    // Clear errors for these fields
+    setInvalidFields(prev => prev.filter(f => !['collegeName', 'salary', 'tuition'].includes(f)));
+    if (error) setError('');
   };
 
   const handleTuitionChange = (e: FormEvent<HTMLInputElement>) => {
@@ -339,11 +341,11 @@ const Calculator = () => {
     }
     setFormData(prev => ({ ...prev, tuition: totalCost.toString() }));
     setShowTuitionModal(false);
-    
+
     if (invalidFields.includes('tuition')) {
       setInvalidFields(prev => prev.filter(field => field !== 'tuition'));
     }
-    
+
     if (error) setError('');
   };
 
@@ -476,7 +478,7 @@ const Calculator = () => {
     // Check if college already exists (by name) and update it, or add new
     let updatedColleges;
     const existingIndex = comparedColleges.findIndex(c => c.name.toLowerCase() === newCollege.name.toLowerCase());
-    
+
     if (existingIndex >= 0) {
       if (!window.confirm(`${newCollege.name} is already in your comparison list. Do you want to update it with current data?`)) {
         return;
@@ -541,7 +543,7 @@ const Calculator = () => {
 
     setShowSchedule(true);
     setScheduleOpen(true);
-    
+
     setTimeout(() => {
       scheduleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
@@ -560,22 +562,22 @@ const Calculator = () => {
   const handleSurveyFinish = () => {
     const annualAid = parseFloat(surveyFinancials.aid) || 0;
     const annualContrib = parseFloat(surveyFinancials.contribution) || 0;
-    
+
     const newComparedColleges: SavedCollege[] = surveySelectedColleges.map(c => {
       const rate = 0.03;
       const t1 = c.annualTuition;
       const rb1 = c.annualRoomBoard;
       const calculateYear = (val: number, yearIndex: number) => Math.round(val * Math.pow(1 + rate, yearIndex));
-      
+
       const t2 = calculateYear(t1, 1);
       const rb2 = calculateYear(rb1, 1);
       const t3 = calculateYear(t1, 2);
       const rb3 = calculateYear(rb1, 2);
       const t4 = calculateYear(t1, 3);
       const rb4 = calculateYear(rb1, 3);
-      
+
       const totalTuition = (t1 + rb1) + (t2 + rb2) + (t3 + rb3) + (t4 + rb4);
-      
+
       const tuitionBreakdownData = {
         tuition1: t1.toString(), roomBoard1: rb1.toString(), financialAid1: annualAid.toString(),
         tuition2: t2.toString(), roomBoard2: rb2.toString(), financialAid2: annualAid.toString(),
@@ -609,11 +611,11 @@ const Calculator = () => {
 
     setComparedColleges(newComparedColleges);
     saveStateToLocalStorage(newComparedColleges);
-    
+
     if (newComparedColleges.length > 0) {
       handleLoadComparison(newComparedColleges[0]);
     }
-    
+
     setShowIntroSurvey(false);
     setShowComparisonModal(true);
   };
@@ -684,45 +686,45 @@ const Calculator = () => {
   };
 
   const confirmClearForm = () => {
-      setFormData({
-        collegeName: '',
-        tuition: '',
-        financialAid: '',
-        familyContribution: '',
-        loanInterest: '',
-        loanTerm: '',
-        salary: '',
-        expenses: ''
-      });
-      setTuitionBreakdown({
-        tuition1: '', roomBoard1: '', financialAid1: '',
-        tuition2: '', roomBoard2: '', financialAid2: '',
-        tuition3: '', roomBoard3: '', financialAid3: '',
-        tuition4: '', roomBoard4: '', financialAid4: ''
-      });
-      setExpensesBreakdown({
-        rent: '2000',
-        groceries: '500',
-        eatingOut: '300',
-        utilities: '150',
-        transportation: '200',
-        healthCare: '150',
-        miscellaneous: '200',
-        contribution401k: '0'
-      });
-      setTaxRates({
-        federal: '12.0',
-        state: '5.0',
-        medicare: '1.45',
-        socialSecurity: '6.2',
-        city: '0.0'
-      });
-      setInflationRate('');
-      setPaymentSchedule([]);
-      setExpandedYears([]);
-      setInvalidFields([]);
-      setError('');
-      setShowClearConfirmation(false);
+    setFormData({
+      collegeName: '',
+      tuition: '',
+      financialAid: '',
+      familyContribution: '',
+      loanInterest: '',
+      loanTerm: '',
+      salary: '',
+      expenses: ''
+    });
+    setTuitionBreakdown({
+      tuition1: '', roomBoard1: '', financialAid1: '',
+      tuition2: '', roomBoard2: '', financialAid2: '',
+      tuition3: '', roomBoard3: '', financialAid3: '',
+      tuition4: '', roomBoard4: '', financialAid4: ''
+    });
+    setExpensesBreakdown({
+      rent: '2000',
+      groceries: '500',
+      eatingOut: '300',
+      utilities: '150',
+      transportation: '200',
+      healthCare: '150',
+      miscellaneous: '200',
+      contribution401k: '0'
+    });
+    setTaxRates({
+      federal: '12.0',
+      state: '5.0',
+      medicare: '1.45',
+      socialSecurity: '6.2',
+      city: '0.0'
+    });
+    setInflationRate('');
+    setPaymentSchedule([]);
+    setExpandedYears([]);
+    setInvalidFields([]);
+    setError('');
+    setShowClearConfirmation(false);
   };
 
   const handleExport = () => {
@@ -759,7 +761,7 @@ const Calculator = () => {
 
     const monthlyRate = annualInterest / 100 / 12;
     const payment = (principal * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
-    
+
     return payment;
   };
 
@@ -788,7 +790,7 @@ const Calculator = () => {
   const getYearlyData = () => {
     const yearlyData = [];
     let currentYear = 1;
-    
+
     for (let i = 0; i < paymentSchedule.length; i += 12) {
       const yearMonths = paymentSchedule.slice(i, i + 12);
       if (yearMonths.length === 0) continue;
@@ -797,7 +799,7 @@ const Calculator = () => {
       const totalPrincipal = yearMonths.reduce((sum, m) => sum + m.principal, 0);
       const totalInterest = yearMonths.reduce((sum, m) => sum + m.interest, 0);
       const endBalance = yearMonths[yearMonths.length - 1].balance;
-      
+
       yearlyData.push({
         year: currentYear,
         payment: totalPayment,
@@ -812,19 +814,19 @@ const Calculator = () => {
   };
 
   const getMonthlyGross = () => (parseFloat(formData.salary) || 0) / 12;
-  
+
   const getMonthlyTax = () => {
     const gross = getMonthlyGross();
     const totalRate = Object.values(taxRates).reduce((acc, val) => acc + (parseFloat(val) || 0), 0);
     return gross * (totalRate / 100);
   };
-  
+
   const getMonthlyTakeHome = () => getMonthlyGross() - getMonthlyTax();
 
   const calculateEffectiveFederalTaxRate = (annualSalary: number) => {
     const standardDeduction = 14600;
     const taxableIncome = Math.max(0, annualSalary - standardDeduction);
-    
+
     // 2024 Tax Brackets for Single Filers
     const brackets = [
       { limit: 11600, rate: 0.10 },
@@ -878,15 +880,15 @@ const Calculator = () => {
 
   const calculateMetrics = (data: SavedCollege['data']) => {
     const { formData, expensesBreakdown, taxRates } = data;
-    
+
     const fourYearCost = parseFloat(formData.tuition) || 0;
     const fourYearAid = parseFloat(formData.financialAid) || 0;
     const fourYearFamily = (parseFloat(formData.familyContribution) || 0) * 4;
     const loanAmount = Math.max(0, fourYearCost - fourYearAid - fourYearFamily);
-    
+
     const annualInterest = parseFloat(formData.loanInterest) || 0;
     const years = parseFloat(formData.loanTerm) || 0;
-    
+
     let monthlyPayment = 0;
     if (loanAmount > 0 && years > 0) {
       if (annualInterest === 0) {
@@ -897,34 +899,34 @@ const Calculator = () => {
         monthlyPayment = (loanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
       }
     }
-    
+
     const totalInterest = Math.max(0, (monthlyPayment * years * 12) - loanAmount);
     const totalCost = fourYearCost + totalInterest;
-    
+
     const monthlyGross = (parseFloat(formData.salary) || 0) / 12;
     const totalTaxRate = Object.values(taxRates).reduce((acc: number, val: any) => acc + (parseFloat(val) || 0), 0);
     const monthlyTax = monthlyGross * (totalTaxRate / 100);
     const monthlyTakeHome = monthlyGross - monthlyTax;
-    
+
     const monthlyExpenses = parseFloat(formData.expenses) || 0;
     const netMonthlyCashFlow = monthlyTakeHome - monthlyExpenses - monthlyPayment;
-    
+
     const monthly401k = parseFloat(expensesBreakdown.contribution401k) || 0;
     const tenYear401k = monthly401k * 12 * 10;
     const tenYearNetFlow = netMonthlyCashFlow * 12 * 10;
     const totalSavings = tenYear401k + tenYearNetFlow;
 
     return {
-        fourYearCost,
-        fourYearAid,
-        fourYearFamily,
-        totalCost,
-        loanAmount,
-        monthlyPayment,
-        totalInterest,
-        monthlyTakeHome,
-        netMonthlyCashFlow,
-        totalSavings
+      fourYearCost,
+      fourYearAid,
+      fourYearFamily,
+      totalCost,
+      loanAmount,
+      monthlyPayment,
+      totalInterest,
+      monthlyTakeHome,
+      netMonthlyCashFlow,
+      totalSavings
     };
   };
 
@@ -935,7 +937,7 @@ const Calculator = () => {
     return '1fr';
   };
 
-  const filteredTopics = helpTopics.filter(topic => 
+  const filteredTopics = helpTopics.filter(topic =>
     topic.title.toLowerCase().includes(guidanceSearch.toLowerCase()) ||
     (typeof topic.content === 'string' && topic.content.toLowerCase().includes(guidanceSearch.toLowerCase()))
   );
@@ -966,7 +968,7 @@ const Calculator = () => {
             </div>
           </div>
         )}
-        
+
         <div className="settings-container">
           <button
             className="secondary-button toggle-button"
@@ -1062,1254 +1064,1266 @@ const Calculator = () => {
             </div>
           )}
         </div>
+        <button
+          className={`agent-toggle-button ${isAgentModeOpen ? 'active' : ''}`}
+          onClick={() => setIsAgentModeOpen(!isAgentModeOpen)}
+          style={{ marginLeft: '1rem' }}
+        >
+          <span role="img" aria-label="robot">🤖</span> Agent Mode
+        </button>
       </nav>
 
-      <div className={`instructions-panel ${showInstructions ? 'expanded' : 'collapsed'}`}>
-        <div className="top-section" style={{ position: 'relative' }}>
-          <button
-            onClick={() => setShowInstructions(false)}
-            className="toggle-button"
-            style={{ position: 'absolute', top: '-10px', right: '-10px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '50%', width: '24px', height: '24px', padding: 0, boxShadow: '0 2px 4px rgba(0,0,0,0.1)', zIndex: 10 }}
-            title="Hide Instructions"
-            aria-label="Hide Instructions"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
-          <div className="instructions">
-            <h4>Why use CollegeROI ?</h4>
-            <p>
-              College is a significant investment. This calculator helps you evaluate the financial Return on Investment (<span className="info-icon" style={{ margin: 0, color: 'inherit', borderBottom: '1px dotted currentColor' }}>
-                ROI
-                <span className="tooltip-text" style={{ width: '200px' }}>
-                  Return on Investment: A measure of the profitability of an investment relative to its cost.
-                </span>
-              </span>) of your degree 
-              by connecting tuition costs, loan interest, and future earnings. Visualize your monthly cash flow and savings to make informed decisions.
-            </p>
-          </div>
-          <div className="instructions">
-            <h4>How to use</h4>
-            <ol>
-              <li>
-                <strong>Inputs:</strong> Search for a college or enter data manually from your research. Click on Tuition, Financial Aid, Taxes, and Expenses fields to enter detailed breakdowns.
-              </li>
-              <li>
-                <strong>Analyze:</strong> Review the estimated cost, loan, and cash flow projections in the center column.
-              </li>
-              <li>
-                <strong>Compare:</strong> Click "Add to Comparison" to save up to 5 colleges and view them side-by-side using the "Detailed Comparison" button.
-              </li>
-            </ol>
-          </div>
-        </div>
-      </div>
-      
-      <div className="content-grid" style={{ gridTemplateColumns: getGridTemplateColumns() }}>
-        {showLeftPanel && (
-          <div className="column left-col">
-            <div className="section-header">
-              <h3>Your Data </h3>
-              <button 
-                type="button" 
-                className="secondary-button" 
-                onClick={handleClearForm}
-                style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
-                title="Reset all inputs to default"
+      <div className="main-layout">
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div className={`instructions-panel ${showInstructions ? 'expanded' : 'collapsed'}`}>
+            <div className="top-section" style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowInstructions(false)}
+                className="toggle-button"
+                style={{ position: 'absolute', top: '-10px', right: '-10px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '50%', width: '24px', height: '24px', padding: 0, boxShadow: '0 2px 4px rgba(0,0,0,0.1)', zIndex: 10 }}
+                title="Hide Instructions"
+                aria-label="Hide Instructions"
               >
-                Clear
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
-            </div>
-          <form className="input-form" onSubmit={handleAddToCompare}>
-            <div className="collapsible-section">
-              <button type="button" className={`section-toggle ${!sections.costs ? 'closed' : ''}`} onClick={() => toggleSection('costs')}>
-                <span>Select College</span>
-                <span>{sections.costs ? '−' : '+'}</span>
-              </button>
-              {sections.costs && (
-                <div className="section-content">
-                  <div className="input-group" style={{ position: 'relative' }}>
-                    <label htmlFor="collegeName">College Name</label>
-                    <input
-                      type="text"
-                      id="collegeName"
-                      name="collegeName"
-                      placeholder="Type to search colleges..."
-                      value={formData.collegeName}
-                      onChange={handleCollegeNameChange}
-                      onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                      autoComplete="off"
-                      className={invalidFields.includes('collegeName') ? 'error-input' : ''}
-                    />
-                    {showSuggestions && suggestions.length > 0 && (
-                      <ul className="suggestions-list">
-                        {suggestions.map(college => (
-                          <li key={college.rank} onMouseDown={() => handleSuggestionClick(college)}>
-                            {college.name}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                  
-                  <div className="input-group">
-                    <label htmlFor="tuition">Estimated 4-Year Tuition ($)</label>
-                    <input
-                      type="number"
-                      id="tuition"
-                      name="tuition"
-                      placeholder="Click to enter tuition breakdown"
-                      value={formData.tuition}
-                      readOnly
-                      onClick={() => setShowTuitionModal(true)}
-                      className={invalidFields.includes('tuition') ? 'error-input' : ''}
-                    />
-                  </div>
-                  <button type="button" className="secondary-button" style={{ width: '100%' }} onClick={() => toggleSection('loans')}>
-                    Next
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div className="collapsible-section">
-              <button type="button" className={`section-toggle ${!sections.loans ? 'closed' : ''}`} onClick={() => toggleSection('loans')}>
-                <span>Paying for college</span>
-                <span>{sections.loans ? '−' : '+'}</span>
-              </button>
-              {sections.loans && (
-                <div className="section-content">
-                  <div className="input-row">
-                    <div className="input-group">
-                      <label htmlFor="financialAid">Expected 4-Year Financial Aid ($)</label>
-                      <input
-                        type="number"
-                        id="financialAid"
-                        name="financialAid"
-                        placeholder="Click to enter financial aid"
-                        value={formData.financialAid}
-                        readOnly
-                        onClick={() => setShowFinancialAidModal(true)}
-                      />
-                    </div>
-                    <div className="input-group">
-                      <label htmlFor="familyContribution">Est. Family Contribution ($/yr)</label>
-                      <input
-                        type="number"
-                        id="familyContribution"
-                        name="familyContribution"
-                        placeholder="e.g. 40,000"
-                        value={formData.familyContribution}
-                        onChange={handleChange}
-                        className={invalidFields.includes('familyContribution') ? 'error-input' : ''}
-                      />
-                    </div>
-                  </div>
-                  <div className="input-row">
-                    <div className="input-group">
-                      <label htmlFor="loanInterest">Loan Interest (%)</label>
-                      <input
-                        type="number"
-                        id="loanInterest"
-                        name="loanInterest"
-                        step="0.1"
-                        placeholder="e.g. 5.5"
-                        value={formData.loanInterest}
-                        onChange={handleChange}
-                        className={invalidFields.includes('loanInterest') ? 'error-input' : ''}
-                      />
-                    </div>
-                    <div className="input-group">
-                      <label htmlFor="loanTerm">Expected Loan Term (yrs)</label>
-                      <input
-                        type="number"
-                        id="loanTerm"
-                        name="loanTerm"
-                        placeholder="e.g. 10"
-                        value={formData.loanTerm}
-                        onChange={handleChange}
-                        className={invalidFields.includes('loanTerm') ? 'error-input' : ''}
-                      />
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: '1rem' }}>
-                    <button type="button" className="schedule-button" style={{ flex: 1 }} onClick={handleShowSchedule}>
-                      Show Estimated Payment Schedule
-                    </button>
-                    <button type="button" className="secondary-button" style={{ flex: 1 }} onClick={() => toggleSection('payments')}>
-                      Next
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="collapsible-section">
-              <button type="button" className={`section-toggle ${!sections.payments ? 'closed' : ''}`} onClick={() => toggleSection('payments')}>
-                <span>ROI</span>
-                <span>{sections.payments ? '−' : '+'}</span>
-              </button>
-              {sections.payments && (
-                <div className="section-content">
-                  <div className="input-group">
-                    <label htmlFor="salary">Expected Annual Starting Salary ($)</label>
-                    <input
-                      type="number"
-                      id="salary"
-                      name="salary"
-                      placeholder="e.g. 60000"
-                      value={formData.salary}
-                      onChange={handleChange}
-                      className={invalidFields.includes('salary') ? 'error-input' : ''}
-                    />
-                  </div>
-                  <div className="input-group">
-                    <label htmlFor="takeHomePay">Estimated takehome after taxes (Monthly $)</label>
-                    <input
-                      type="number"
-                      id="takeHomePay"
-                      placeholder="Click to calculate taxes"
-                      value={Math.round(getMonthlyTakeHome()) || ''}
-                      readOnly
-                      onClick={() => {
-                        const salary = parseFloat(formData.salary) || 0;
-                        if (salary > 0) {
-                          const estimatedFedRate = calculateEffectiveFederalTaxRate(salary);
-                          setTaxRates(prev => ({ ...prev, federal: estimatedFedRate }));
-                        }
-                        setShowTaxModal(true);
-                      }}
-                    />
-                  </div>
-                  <div className="input-group">
-                    <label htmlFor="expenses">Estimated Monthly Expenses ($)</label>
-                    <input
-                      type="number"
-                      id="expenses"
-                      name="expenses"
-                      placeholder="Click to enter expenses breakdown"
-                      value={formData.expenses}
-                      readOnly
-                      onClick={() => setShowExpensesModal(true)}
-                    />
-                  </div>
-                  {error && <div className="error-message">{error}</div>}
-                  <button type="submit" className="add-to-compare-button" style={{ width: '100%' }} onClick={handleAddToCompare}>
-                    Add to Comparison
-                  </button>
-                </div>
-              )}
-            </div>
-          </form>
-          </div>
-        )}
-
-        <div className="column center-col">
-          <div className="section-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <button 
-                type="button" 
-                className="toggle-button" 
-                onClick={() => setShowLeftPanel(!showLeftPanel)}
-                title={showLeftPanel ? "Collapse Inputs" : "Expand Inputs"}
-              >
-                {showLeftPanel ? <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg> : <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>}
-              </button>
-              <h3>Estimates & Summaries</h3>
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button type="button" className="schedule-button" onClick={handleSave} aria-label="Save" title="Save">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                {saveSuccess && (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '0.5rem' }}><polyline points="20 6 9 17 4 12"></polyline></svg>
-                )}
-              </button>
-              <button type="button" className="schedule-button" onClick={handleClearSave} aria-label="Clear Saved Data" title="Clear Saved Data">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-              </button>
-              <button type="button" className="schedule-button" onClick={handleExport} aria-label="Export" title="Export">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              </button>
-              <button 
-                type="button" 
-                className="toggle-button" 
-                onClick={() => setShowRightPanel(!showRightPanel)}
-                title={showRightPanel ? "Collapse Compare" : "Expand Compare"}
-              >
-                {showRightPanel ? <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg> : <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>}
-              </button>
-            </div>
-          </div>
-          <div className="result-card">
-            <h4 style={{ margin: 0, color: '#334155' }}>
-              Estimated Cost Summary
-              <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
-                  These figures are projections based on the data you entered. Actual cost to attend college will vary based on actuals.
-                </span>
-              </span>
-            </h4>
-            <div className="result-item">
-              <h4>4-Year Cost</h4>
-              <div className="value">{formatCurrency(calculateFourYearCost())}</div>
-            </div>
-            <div className="result-item">
-              <h4>4-Year Financial Aid</h4>
-              <div className="value" style={{ color: '#10b981' }}>{formatCurrency(parseFloat(formData.financialAid) || 0)}</div>
-            </div>
-            <div className="result-item">
-              <h4>4-Year Family Contribution</h4>
-              <div className="value">{formatCurrency(calculateFourYearFamilyContribution())}</div>
-            </div>
-            <div className="result-item">
-              <h4>Total Cost of College</h4>
-              <div className="value">{formatCurrency(calculateTotalCostOfCollege())}</div>
-            </div>
-          </div>
-          <div className="result-card">
-            <h4 style={{ margin: 0, color: '#334155' }}>
-              Estimated Loan Summary
-              <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
-                  This shows the estimated breakdown of your loan principal, monthly payments, and total interest paid over the loan term, based on the data you entered. Actual loan principal, monthly payments, and total interest paid to attend college will vary based on actuals.
-                </span>
-              </span>
-            </h4>
-            <div className="result-item">
-              <h4>Loan Amount</h4>
-              <div className="value">{formatCurrency(calculateLoanAmount())}</div>
-            </div>
-            <div className="result-item">
-              <h4>Monthly Payment</h4>
-              <div className="value">{formatCurrency(calculateMonthlyPayment())}</div>
-            </div>
-            <div className="result-item">
-              <h4>Total Interest Paid</h4>
-              <div className="value">{formatCurrency(calculateTotalInterest())}</div>
-            </div>
-          </div>
-          <div className="result-card">
-            <h4 style={{ margin: 0, color: '#334155' }}>
-              Estimated Cash Flow
-              <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
-                  Estimated of the breakdown of your monthly income, taxes, loan payments, and expenses to show your expected net monthly cash flow. Actual net monthly cash flow will vary based on your specific circumstances.
-                </span>
-              </span>
-            </h4>
-            <table className="ledger-table">
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th style={{ textAlign: 'right' }}>Amount</th>
-                  <th style={{ textAlign: 'right' }}>Balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>Estimated Monthly Salary</td>
-                  <td style={{ textAlign: 'right', color: '#10b981' }}>{formatCurrency(getMonthlyGross())}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(getMonthlyGross())}</td>
-                </tr>
-                <tr>
-                  <td>Estimated Taxes</td>
-                  <td style={{ textAlign: 'right', color: '#ef4444' }}>-{formatCurrency(getMonthlyTax())}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(getMonthlyTakeHome())}</td>
-                </tr>
-                <tr>
-                  <td>Loan Payment</td>
-                  <td style={{ textAlign: 'right', color: '#ef4444' }}>-{formatCurrency(calculateMonthlyPayment())}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(calculateTakeHomeAfterLoan())}</td>
-                </tr>
-                <tr>
-                  <td>Monthly Expenses</td>
-                  <td style={{ textAlign: 'right', color: '#ef4444' }}>-{formatCurrency(parseFloat(formData.expenses) || 0)}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 'bold', color: calculateNetMonthlyCashFlow() >= 0 ? '#10b981' : '#ef4444' }}>
-                    {formatCurrency(calculateNetMonthlyCashFlow())}
-                  </td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr style={{ borderTop: '2px solid #cbd5e1' }}>
-                  <td style={{ fontWeight: '800', paddingTop: '0.75rem', color: '#1e293b' }}>Net Monthly Cash Flow</td>
-                  <td></td>
-                  <td style={{ textAlign: 'right', fontWeight: '800', paddingTop: '0.75rem', fontSize: '1.1rem', color: calculateNetMonthlyCashFlow() >= 0 ? '#10b981' : '#ef4444' }}>
-                    {formatCurrency(calculateNetMonthlyCashFlow())}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-          <div className="result-card">
-            <h4 style={{ margin: 0, color: '#334155' }}>
-              10-Year Return On Investment (ROI)
-              <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
-                  Potential savings accumulated over 10 years based on your estimated net cash flow and 401k contributions.
-                </span>
-              </span>
-            </h4>
-            <div className="result-item">
-              <h4>Accumulated Net Cash Flow</h4>
-              <div className="value" style={{ color: calculateTenYearNetFlow() >= 0 ? '#10b981' : '#ef4444' }}>
-                {formatCurrency(calculateTenYearNetFlow())}
+              <div className="instructions">
+                <h4>Why use CollegeROI ?</h4>
+                <p>
+                  College is a significant investment. This calculator helps you evaluate the financial Return on Investment (<span className="info-icon" style={{ margin: 0, color: 'inherit', borderBottom: '1px dotted currentColor' }}>
+                    ROI
+                    <span className="tooltip-text" style={{ width: '200px' }}>
+                      Return on Investment: A measure of the profitability of an investment relative to its cost.
+                    </span>
+                  </span>) of your degree
+                  by connecting tuition costs, loan interest, and future earnings. Visualize your monthly cash flow and savings to make informed decisions.
+                </p>
               </div>
-            </div>
-            <div className="result-item">
-              <h4>
-                Total 401k Contribution
-                <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                  <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
-                    The total amount contributed to your 401k retirement account over 10 years. This money is saved for your future and reduces your taxable income.
-                  </span>
-                </span>
-              </h4>
-              <div className="value">{formatCurrency(calculateTenYear401k())}</div>
-            </div>
-            <div className="result-item">
-              <h4>Total Projected Savings</h4>
-              <div className="value" style={{ color: calculateTotalTenYearSavings() >= 0 ? '#10b981' : '#ef4444' }}>
-                {formatCurrency(calculateTotalTenYearSavings())}
+              <div className="instructions">
+                <h4>How to use</h4>
+                <ol>
+                  <li>
+                    <strong>Inputs:</strong> Search for a college or enter data manually from your research. Click on Tuition, Financial Aid, Taxes, and Expenses fields to enter detailed breakdowns.
+                  </li>
+                  <li>
+                    <strong>Analyze:</strong> Review the estimated cost, loan, and cash flow projections in the center column.
+                  </li>
+                  <li>
+                    <strong>Compare:</strong> Click "Add to Comparison" to save up to 5 colleges and view them side-by-side using the "Detailed Comparison" button.
+                  </li>
+                </ol>
               </div>
             </div>
           </div>
 
-          {showSchedule && (
-            <div ref={scheduleRef} className="result-card" style={{ padding: 0, overflow: 'hidden' }}>
-              <button 
-                type="button" 
-                className={`section-toggle ${!scheduleOpen ? 'closed' : ''}`} 
-                onClick={() => setScheduleOpen(!scheduleOpen)}
-                style={{ borderRadius: 0, borderTop: 'none', borderLeft: 'none', borderRight: 'none' }}
-              >
-                <span>Estimated Payment Schedule</span>
-                <span>{scheduleOpen ? '−' : '+'}</span>
-              </button>
-              {scheduleOpen && (
-                <div className="schedule-container">
-                  <table className="schedule-table">
-                    <thead>
-                      <tr>
-                        <th>Year / Month</th>
-                        <th>Payment</th>
-                        <th>Principal</th>
-                        <th>Interest</th>
-                        <th>Balance</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paymentSchedule.length > 0 ? (
-                        getYearlyData().map((yearData) => (
-                          <Fragment key={yearData.year}>
-                            <tr 
-                              onClick={() => toggleYear(yearData.year)} 
-                              style={{ cursor: 'pointer', fontWeight: 'bold', background: 'rgba(255,255,255,0.6)' }}
-                            >
-                              <td style={{ textAlign: 'left', paddingLeft: '1rem' }}>
-                                <span style={{ display: 'inline-block', width: '1.5rem' }}>{expandedYears.includes(yearData.year) ? '−' : '+'}</span>
-                                Year {yearData.year}
-                              </td>
-                              <td>{formatCurrency(yearData.payment)}</td>
-                              <td>{formatCurrency(yearData.principal)}</td>
-                              <td>{formatCurrency(yearData.interest)}</td>
-                              <td>{formatCurrency(yearData.balance)}</td>
-                            </tr>
-                            {expandedYears.includes(yearData.year) && yearData.months.map((row) => (
-                              <tr key={row.month} style={{ background: 'rgba(255,255,255,0.3)' }}>
-                                <td style={{ textAlign: 'left', paddingLeft: '3rem' }}>Month {row.month}</td>
-                                <td>{formatCurrency(row.payment)}</td>
-                                <td>{formatCurrency(row.principal)}</td>
-                                <td>{formatCurrency(row.interest)}</td>
-                                <td>{formatCurrency(row.balance)}</td>
-                              </tr>
-                            ))}
-                          </Fragment>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={5} style={{ textAlign: 'center', padding: '1rem' }}>
-                            No loan data available. Please check your inputs.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+          <div className="content-grid" style={{ gridTemplateColumns: getGridTemplateColumns() }}>
+            {showLeftPanel && (
+              <div className="column left-col">
+                <div className="section-header">
+                  <h3>Your Data </h3>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={handleClearForm}
+                    style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
+                    title="Reset all inputs to default"
+                  >
+                    Clear
+                  </button>
                 </div>
-              )}
-            </div>
-          )}
-        </div>
-        {showRightPanel && (
-          <div className="column right-col">
-            <div className="section-header">
-              <h3>Compare</h3>
-              {comparedColleges.length > 0 && (
-                <button 
-                  className="secondary-button" 
-                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
-                  onClick={() => setShowComparisonModal(true)}
-                >
-                  Detailed Comparison
-                </button>
-              )}
-            </div>
-            
-            {comparedColleges.length === 0 ? (
-              <p style={{ color: '#64748b', fontStyle: 'italic', fontSize: '0.9rem' }}>
-                Add colleges to comparison to see them here.
-              </p>
-            ) : (
-              <div className="comparison-list">
-                {comparedColleges.map(college => {
-                  const metrics = calculateMetrics(college.data);
-                  const isSelected = formData.collegeName.toLowerCase() === college.name.toLowerCase();
-                  return (
-                    <div 
-                      key={college.id} 
-                      className="comparison-card" 
-                      onClick={() => handleLoadComparison(college)} 
-                      title={isSelected ? "Currently viewing" : "Click to load data"}
-                      style={isSelected ? { border: '2px solid #6366f1', backgroundColor: '#eff6ff' } : undefined}
-                    >
-                      <div className="comparison-card-header">
-                        <span className="college-name">
-                          {college.name}
-                          {isSelected && (
-                            <span style={{ 
-                              fontSize: '0.7rem', 
-                              marginLeft: '0.5rem', 
-                              color: '#4338ca', 
-                              backgroundColor: '#e0e7ff', 
-                              padding: '0.1rem 0.4rem', 
-                              borderRadius: '1rem',
-                              verticalAlign: 'middle',
-                              fontWeight: 'normal'
-                            }}>
-                              Active
-                            </span>
+                <form className="input-form" onSubmit={handleAddToCompare}>
+                  <div className="collapsible-section">
+                    <button type="button" className={`section-toggle ${!sections.costs ? 'closed' : ''}`} onClick={() => toggleSection('costs')}>
+                      <span>Select College</span>
+                      <span>{sections.costs ? '−' : '+'}</span>
+                    </button>
+                    {sections.costs && (
+                      <div className="section-content">
+                        <div className="input-group" style={{ position: 'relative' }}>
+                          <label htmlFor="collegeName">College Name</label>
+                          <input
+                            type="text"
+                            id="collegeName"
+                            name="collegeName"
+                            placeholder="Type to search colleges..."
+                            value={formData.collegeName}
+                            onChange={handleCollegeNameChange}
+                            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                            autoComplete="off"
+                            className={invalidFields.includes('collegeName') ? 'error-input' : ''}
+                          />
+                          {showSuggestions && suggestions.length > 0 && (
+                            <ul className="suggestions-list">
+                              {suggestions.map(college => (
+                                <li key={college.rank} onMouseDown={() => handleSuggestionClick(college)}>
+                                  {college.name}
+                                </li>
+                              ))}
+                            </ul>
                           )}
-                        </span>
-                        <button 
-                          className="comparison-remove" 
-                          onClick={(e) => handleRemoveComparison(e, college.id)}
-                          title="Remove from comparison"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                        </button>
-                      </div>
-                      <div className="comparison-metric">
-                        <span className="label">Net Monthly Flow</span>
-                        <span className={`value ${metrics.netMonthlyCashFlow >= 0 ? 'positive' : 'negative'}`}>
-                          {formatCurrency(metrics.netMonthlyCashFlow)}
-                        </span>
-                      </div>
-                      <div className="comparison-metric">
-                        <span className="label">10-Year ROI</span>
-                        <span className={`value ${metrics.totalSavings >= 0 ? 'positive' : 'negative'}`}>
-                          {formatCurrency(metrics.totalSavings)}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+                        </div>
 
-      {showTuitionModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>4-Year Cost Breakdown</h3>
-            <div className="input-form" style={{ maxWidth: '100%', overflowX: 'auto' }}>
-              {['1', '2', '3', '4'].map((year) => (
-                <div key={year}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <h4 style={{ margin: 0, color: '#334155' }}>Year {year}</h4>
-                    {year === '1' && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ fontSize: '0.8rem', color: '#334155' }}>Inflation %</span>
-                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                        <div className="input-group">
+                          <label htmlFor="tuition">Estimated 4-Year Tuition ($)</label>
                           <input
                             type="number"
-                            placeholder="Inflation"
-                            title="Enter annual inflation rate to apply when copying to future years"
-                            value={inflationRate}
-                            onChange={(e) => setInflationRate(e.target.value)}
-                            style={{
-                              width: '90px',
-                              padding: '0.25rem 0.5rem 0.25rem 0.5rem',
-                              fontSize: '0.8rem',
-                              border: '1px solid #cbd5e1',
-                              borderRadius: '0.25rem',
-                              background: 'white',
-                              color: 'black'
+                            id="tuition"
+                            name="tuition"
+                            placeholder="Click to enter tuition breakdown"
+                            value={formData.tuition}
+                            readOnly
+                            onClick={() => setShowTuitionModal(true)}
+                            className={invalidFields.includes('tuition') ? 'error-input' : ''}
+                          />
+                        </div>
+                        <button type="button" className="secondary-button" style={{ width: '100%' }} onClick={() => toggleSection('loans')}>
+                          Next
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="collapsible-section">
+                    <button type="button" className={`section-toggle ${!sections.loans ? 'closed' : ''}`} onClick={() => toggleSection('loans')}>
+                      <span>Paying for college</span>
+                      <span>{sections.loans ? '−' : '+'}</span>
+                    </button>
+                    {sections.loans && (
+                      <div className="section-content">
+                        <div className="input-row">
+                          <div className="input-group">
+                            <label htmlFor="financialAid">Expected 4-Year Financial Aid ($)</label>
+                            <input
+                              type="number"
+                              id="financialAid"
+                              name="financialAid"
+                              placeholder="Click to enter financial aid"
+                              value={formData.financialAid}
+                              readOnly
+                              onClick={() => setShowFinancialAidModal(true)}
+                            />
+                          </div>
+                          <div className="input-group">
+                            <label htmlFor="familyContribution">Est. Family Contribution ($/yr)</label>
+                            <input
+                              type="number"
+                              id="familyContribution"
+                              name="familyContribution"
+                              placeholder="e.g. 40,000"
+                              value={formData.familyContribution}
+                              onChange={handleChange}
+                              className={invalidFields.includes('familyContribution') ? 'error-input' : ''}
+                            />
+                          </div>
+                        </div>
+                        <div className="input-row">
+                          <div className="input-group">
+                            <label htmlFor="loanInterest">Loan Interest (%)</label>
+                            <input
+                              type="number"
+                              id="loanInterest"
+                              name="loanInterest"
+                              step="0.1"
+                              placeholder="e.g. 5.5"
+                              value={formData.loanInterest}
+                              onChange={handleChange}
+                              className={invalidFields.includes('loanInterest') ? 'error-input' : ''}
+                            />
+                          </div>
+                          <div className="input-group">
+                            <label htmlFor="loanTerm">Expected Loan Term (yrs)</label>
+                            <input
+                              type="number"
+                              id="loanTerm"
+                              name="loanTerm"
+                              placeholder="e.g. 10"
+                              value={formData.loanTerm}
+                              onChange={handleChange}
+                              className={invalidFields.includes('loanTerm') ? 'error-input' : ''}
+                            />
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                          <button type="button" className="schedule-button" style={{ flex: 1 }} onClick={handleShowSchedule}>
+                            Show Estimated Payment Schedule
+                          </button>
+                          <button type="button" className="secondary-button" style={{ flex: 1 }} onClick={() => toggleSection('payments')}>
+                            Next
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="collapsible-section">
+                    <button type="button" className={`section-toggle ${!sections.payments ? 'closed' : ''}`} onClick={() => toggleSection('payments')}>
+                      <span>ROI</span>
+                      <span>{sections.payments ? '−' : '+'}</span>
+                    </button>
+                    {sections.payments && (
+                      <div className="section-content">
+                        <div className="input-group">
+                          <label htmlFor="salary">Expected Annual Starting Salary ($)</label>
+                          <input
+                            type="number"
+                            id="salary"
+                            name="salary"
+                            placeholder="e.g. 60000"
+                            value={formData.salary}
+                            onChange={handleChange}
+                            className={invalidFields.includes('salary') ? 'error-input' : ''}
+                          />
+                        </div>
+                        <div className="input-group">
+                          <label htmlFor="takeHomePay">Estimated takehome after taxes (Monthly $)</label>
+                          <input
+                            type="number"
+                            id="takeHomePay"
+                            placeholder="Click to calculate taxes"
+                            value={Math.round(getMonthlyTakeHome()) || ''}
+                            readOnly
+                            onClick={() => {
+                              const salary = parseFloat(formData.salary) || 0;
+                              if (salary > 0) {
+                                const estimatedFedRate = calculateEffectiveFederalTaxRate(salary);
+                                setTaxRates(prev => ({ ...prev, federal: estimatedFedRate }));
+                              }
+                              setShowTaxModal(true);
                             }}
                           />
                         </div>
-                        <button
-                          type="button"
-                          onClick={handleCopyYear1}
-                          style={{
-                            fontSize: '0.8rem',
-                            padding: '0.25rem 0.5rem',
-                            background: '#e2e8f0',
-                            border: 'none',
-                            borderRadius: '0.25rem',
-                            cursor: 'pointer',
-                            color: '#475569'
-                          }}
-                        >
-                          Copy to all ↓
+                        <div className="input-group">
+                          <label htmlFor="expenses">Estimated Monthly Expenses ($)</label>
+                          <input
+                            type="number"
+                            id="expenses"
+                            name="expenses"
+                            placeholder="Click to enter expenses breakdown"
+                            value={formData.expenses}
+                            readOnly
+                            onClick={() => setShowExpensesModal(true)}
+                          />
+                        </div>
+                        {error && <div className="error-message">{error}</div>}
+                        <button type="submit" className="add-to-compare-button" style={{ width: '100%' }} onClick={handleAddToCompare}>
+                          Add to Comparison
                         </button>
                       </div>
                     )}
                   </div>
-                  <div className="input-row">
-                    <div className="input-group">
-                      <label htmlFor={`tuition${year}`}>Tuition + Other</label>
-                      <input
-                        type="number"
-                        id={`tuition${year}`}
-                        name={`tuition${year}`}
-                        min="0"
-                        placeholder="e.g. 40000"
-                        value={tuitionBreakdown[`tuition${year}` as keyof typeof tuitionBreakdown]}
-                        onChange={handleTuitionChange}
-                        onKeyDown={handleKeyDown}
-                      />
-                    </div>
-                    <div className="input-group">
-                      <label htmlFor={`roomBoard${year}`}>Room + Board</label>
-                      <input
-                        type="number"
-                        id={`roomBoard${year}`}
-                        name={`roomBoard${year}`}
-                        min="0"
-                        placeholder="e.g. 15000"
-                        value={tuitionBreakdown[`roomBoard${year}` as keyof typeof tuitionBreakdown]}
-                        onChange={handleTuitionChange}
-                        onKeyDown={handleKeyDown}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <button type="button" className="calculate-button" onClick={handleTuitionDone} style={{ flex: 1 }}>
-                  Done
-                </button>
-                <button 
-                  type="button" 
-                  className="calculate-button" 
-                  onClick={handleTuitionClear}
-                  style={{ flex: 1, background: '#64748b' }}>
-                  Clear All
-                </button>
+                </form>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+            )}
 
-      {showFinancialAidModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>4-Year Financial Aid Breakdown</h3>
-            <div className="input-form" style={{ maxWidth: '100%', overflowX: 'auto' }}>
-              {['1', '2', '3', '4'].map((year) => (
-                <div key={year}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <h4 style={{ margin: 0, color: '#334155' }}>Year {year}</h4>
-                    {year === '1' && (
-                      <button
-                        type="button"
-                        onClick={handleCopyFinancialAidYear1}
-                        style={{
-                          fontSize: '0.8rem',
-                          padding: '0.25rem 0.5rem',
-                          background: '#e2e8f0',
-                          border: 'none',
-                          borderRadius: '0.25rem',
-                          cursor: 'pointer',
-                          color: '#475569'
-                        }}
-                      >
-                        Copy to all ↓
-                      </button>
-                    )}
-                  </div>
-                  <div className="input-group">
-                    <label htmlFor={`financialAid${year}`}>Financial Aid ($)</label>
-                    <input
-                      type="number"
-                      id={`financialAid${year}`}
-                      name={`financialAid${year}`}
-                      min="0"
-                      placeholder="e.g. 5000"
-                      value={tuitionBreakdown[`financialAid${year}` as keyof typeof tuitionBreakdown]}
-                      onChange={handleTuitionChange}
-                      onKeyDown={handleKeyDown}
-                    />
-                  </div>
-                </div>
-              ))}
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button type="button" className="calculate-button" onClick={handleFinancialAidDone} style={{ flex: 1 }}>
-                  Done
-                </button>
-                <button 
-                  type="button" 
-                  className="calculate-button" 
-                  onClick={handleFinancialAidClear}
-                  style={{ flex: 1, background: '#64748b' }}>
-                  Clear All
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showExpensesModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Monthly Expenses Breakdown</h3>
-            <div className="input-form">
-              <div className="input-row">
-                <div className="input-group">
-                  <label htmlFor="rent">
-                    Rent
-                    <span className="info-icon">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                      <span className="tooltip-text">Monthly rent or mortgage payment</span>
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    id="rent"
-                    name="rent"
-                    min="0"
-                    placeholder="e.g. 1500"
-                    value={expensesBreakdown.rent}
-                    onChange={handleExpensesChange}
-                    onKeyDown={handleKeyDown}
-                  />
-                </div>
-                <div className="input-group">
-                  <label htmlFor="groceries">
-                    Groceries
-                    <span className="info-icon">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                      <span className="tooltip-text">Food and household supplies</span>
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    id="groceries"
-                    name="groceries"
-                    min="0"
-                    placeholder="e.g. 400"
-                    value={expensesBreakdown.groceries}
-                    onChange={handleExpensesChange}
-                    onKeyDown={handleKeyDown}
-                  />
-                </div>
-              </div>
-              <div className="input-row">
-                <div className="input-group">
-                  <label htmlFor="eatingOut">
-                    Eating out
-                    <span className="info-icon">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                      <span className="tooltip-text">Restaurants, cafes, and takeout</span>
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    id="eatingOut"
-                    name="eatingOut"
-                    min="0"
-                    placeholder="e.g. 200"
-                    value={expensesBreakdown.eatingOut}
-                    onChange={handleExpensesChange}
-                    onKeyDown={handleKeyDown}
-                  />
-                </div>
-                <div className="input-group">
-                  <label htmlFor="utilities">
-                    Utilities
-                    <span className="info-icon">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                      <span className="tooltip-text">Electricity, water, gas, internet, phone</span>
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    id="utilities"
-                    name="utilities"
-                    min="0"
-                    placeholder="e.g. 150"
-                    value={expensesBreakdown.utilities}
-                    onChange={handleExpensesChange}
-                    onKeyDown={handleKeyDown}
-                  />
-                </div>
-              </div>
-              <div className="input-row">
-                <div className="input-group">
-                  <label htmlFor="transportation">
-                    Transportation
-                    <span className="info-icon">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                      <span className="tooltip-text">Gas, insurance, maintenance, public transit</span>
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    id="transportation"
-                    name="transportation"
-                    min="0"
-                    placeholder="e.g. 300"
-                    value={expensesBreakdown.transportation}
-                    onChange={handleExpensesChange}
-                    onKeyDown={handleKeyDown}
-                  />
-                </div>
-                <div className="input-group">
-                  <label htmlFor="healthCare">
-                    HealthCare
-                    <span className="info-icon">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                      <span className="tooltip-text">Insurance premiums, copays, medications</span>
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    id="healthCare"
-                    name="healthCare"
-                    min="0"
-                    placeholder="e.g. 100"
-                    value={expensesBreakdown.healthCare}
-                    onChange={handleExpensesChange}
-                    onKeyDown={handleKeyDown}
-                  />
-                </div>
-              </div>
-              <div className="input-row">
-                <div className="input-group">
-                  <label htmlFor="miscellaneous">
-                    Miscellaneous
-                    <span className="info-icon">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                      <span className="tooltip-text">Clothing, entertainment, personal care</span>
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    id="miscellaneous"
-                    name="miscellaneous"
-                    min="0"
-                    placeholder="e.g. 100"
-                    value={expensesBreakdown.miscellaneous}
-                    onChange={handleExpensesChange}
-                    onKeyDown={handleKeyDown}
-                  />
-                </div>
-                <div className="input-group">
-                  <label htmlFor="contribution401k">
-                    401k Contribution
-                    <span className="info-icon">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                      <span className="tooltip-text" style={{ width: '220px' }}>A tax-advantaged retirement savings plan. Contributions are often deducted from your paycheck before taxes.</span>
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    id="contribution401k"
-                    name="contribution401k"
-                    min="0"
-                    placeholder="e.g. 500"
-                    value={expensesBreakdown.contribution401k}
-                    onChange={handleExpensesChange}
-                    onKeyDown={handleKeyDown}
-                  />
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button type="button" className="calculate-button" onClick={handleExpensesDone} style={{ flex: 1 }}>
-                  Done
-                </button>
-                <button 
-                  type="button" 
-                  className="calculate-button" 
-                  onClick={handleExpensesClear}
-                  style={{ flex: 1, background: '#64748b' }}>
-                  Clear All
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showTaxModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Estimated Monthly Tax Breakdown</h3>
-            <p style={{ color: '#64748b', marginBottom: '1rem' }}>
-              Monthly Gross Income: <strong>{formatCurrency(getMonthlyGross())}</strong>
-            </p>
-            <div className="input-form">
-              <div className="input-row">
-                <div className="input-group">
-                  <label htmlFor="federal">
-                    Federal Tax (%)
-                    <span className="info-icon">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                      <div className="tooltip-text wide-tooltip">
-                        <div style={{ marginBottom: '0.5rem', fontWeight: 'bold', textAlign: 'center' }}>2024 Tax Brackets (Single)</div>
-                        <table className="tooltip-table">
-                          <thead>
-                            <tr><th style={{ textAlign: 'left' }}>Income Range</th><th style={{ textAlign: 'right' }}>Rate</th></tr>
-                          </thead>
-                          <tbody>
-                            <tr><td>$0 - $11,600</td><td style={{ textAlign: 'right' }}>10%</td></tr>
-                            <tr><td>$11,601 - $47,150</td><td style={{ textAlign: 'right' }}>12%</td></tr>
-                            <tr><td>$47,151 - $100,525</td><td style={{ textAlign: 'right' }}>22%</td></tr>
-                            <tr><td>$100,526 - $191,950</td><td style={{ textAlign: 'right' }}>24%</td></tr>
-                            <tr><td>$191,951 - $243,725</td><td style={{ textAlign: 'right' }}>32%</td></tr>
-                            <tr><td>$243,726 - $609,350</td><td style={{ textAlign: 'right' }}>35%</td></tr>
-                            <tr><td>$609,351+</td><td style={{ textAlign: 'right' }}>37%</td></tr>
-                          </tbody>
-                        </table>
-                        <div style={{ marginTop: '0.5rem', fontSize: '0.65rem', fontStyle: 'italic', textAlign: 'center' }}>* Standard deduction: $14,600</div>
-                      </div>
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    id="federal"
-                    name="federal"
-                    step="0.1"
-                    value={taxRates.federal}
-                    onChange={handleTaxChange}
-                  />
-                </div>
-                <div className="input-group">
-                  <label htmlFor="state">State Tax (%)</label>
-                  <input
-                    type="number"
-                    id="state"
-                    name="state"
-                    step="0.1"
-                    value={taxRates.state}
-                    onChange={handleTaxChange}
-                  />
-                </div>
-              </div>
-              <div className="input-row">
-                <div className="input-group">
-                  <label htmlFor="city">City/County Tax (%)</label>
-                  <input
-                    type="number"
-                    id="city"
-                    name="city"
-                    step="0.1"
-                    value={taxRates.city}
-                    onChange={handleTaxChange}
-                  />
-                </div>
-                <div className="input-group">
-                  <label htmlFor="socialSecurity">Social Security (%)</label>
-                  <input
-                    type="number"
-                    id="socialSecurity"
-                    name="socialSecurity"
-                    step="0.1"
-                    value={taxRates.socialSecurity}
-                    onChange={handleTaxChange}
-                  />
-                </div>
-              </div>
-              <div className="input-row">
-                <div className="input-group">
-                  <label htmlFor="medicare">Medicare (%)</label>
-                  <input
-                    type="number"
-                    id="medicare"
-                    name="medicare"
-                    step="0.1"
-                    value={taxRates.medicare}
-                    onChange={handleTaxChange}
-                  />
-                </div>
-              </div>
-              
-              <div className="result-card" style={{ marginTop: '1rem', background: '#f8fafc' }}>
-                <div className="result-item" style={{ borderBottom: 'none', paddingBottom: '0.5rem' }}>
-                  <h4>Total Monthly Tax</h4>
-                  <div className="value" style={{ fontSize: '1.1rem', color: '#ef4444' }}>
-                    {formatCurrency(getMonthlyTax())}
-                  </div>
-                </div>
-                <div style={{ padding: '0 0 1rem 0', borderBottom: '1px solid #e2e8f0', marginBottom: '1rem', fontSize: '0.85rem', color: '#64748b', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Federal ({taxRates.federal}%)</span>
-                    <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.federal) || 0) / 100)}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>State ({taxRates.state}%)</span>
-                    <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.state) || 0) / 100)}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>City/County ({taxRates.city}%)</span>
-                    <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.city) || 0) / 100)}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Social Security ({taxRates.socialSecurity}%)</span>
-                    <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.socialSecurity) || 0) / 100)}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Medicare ({taxRates.medicare}%)</span>
-                    <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.medicare) || 0) / 100)}</span>
-                  </div>
-                </div>
-                <div className="result-item">
-                  <h4>Est. Monthly Take-home</h4>
-                  <div className="value" style={{ fontSize: '1.1rem', color: '#10b981' }}>
-                    {formatCurrency(getMonthlyTakeHome())}
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button className="calculate-button" onClick={() => setShowTaxModal(false)} style={{ flex: 1 }}>
-                  Done
-                </button>
-                <button 
-                  type="button" 
-                  className="calculate-button" 
-                  onClick={handleTaxClear}
-                  style={{ flex: 1, background: '#64748b' }}>
-                  Clear All
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showComparisonModal && (
-        <div className="modal-overlay">
-          <div className="modal-content comparison-modal-content">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ margin: 0 }}>
-                College Comparison (Estimated Costs & ROI)
-                <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                  <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
-                    Side-by-side comparison of estimated key financial metrics for your saved colleges.
-                  </span>
-                </span>
-              </h3>
-              <button onClick={() => setShowComparisonModal(false)} className="secondary-button">Close</button>
-            </div>
-            <div className="comparison-table-container">
-              <table className="comparison-table">
-                <thead>
-                  <tr>
-                    <th></th>
-                    {comparedColleges.map(c => <th key={c.id}>{c.name}</th>)}
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>4-Year Cost</td>
-                    {comparedColleges.map(c => <td key={c.id}>{formatCurrency(calculateMetrics(c.data).fourYearCost)}</td>)}
-                  </tr>
-                  <tr>
-                    <td>4-Year Financial Aid</td>
-                    {comparedColleges.map(c => <td key={c.id} style={{ color: '#10b981' }}>{formatCurrency(calculateMetrics(c.data).fourYearAid)}</td>)}
-                  </tr>
-                  <tr>
-                    <td>Loan Amount</td>
-                    {comparedColleges.map(c => <td key={c.id}>{formatCurrency(calculateMetrics(c.data).loanAmount)}</td>)}
-                  </tr>
-                  <tr>
-                    <td>Total Interest Paid</td>
-                    {comparedColleges.map(c => <td key={c.id}>{formatCurrency(calculateMetrics(c.data).totalInterest)}</td>)}
-                  </tr>
-                  <tr style={{ background: '#f8fafc', fontWeight: 'bold' }}>
-                    <td>Total Cost of College</td>
-                    {comparedColleges.map(c => <td key={c.id}>{formatCurrency(calculateMetrics(c.data).totalCost)}</td>)}
-                  </tr>
-                  <tr>
-                    <td>Monthly Loan Payment</td>
-                    {comparedColleges.map(c => <td key={c.id} style={{ color: '#ef4444' }}>{formatCurrency(calculateMetrics(c.data).monthlyPayment)}</td>)}
-                  </tr>
-                  <tr>
-                    <td>Net Monthly Cash Flow</td>
-                    {comparedColleges.map(c => {
-                      const val = calculateMetrics(c.data).netMonthlyCashFlow;
-                      return <td key={c.id} style={{ color: val >= 0 ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>{formatCurrency(val)}</td>;
-                    })}
-                  </tr>
-                  <tr>
-                    <td>10-Year Projected Savings</td>
-                    {comparedColleges.map(c => {
-                      const val = calculateMetrics(c.data).totalSavings;
-                      return <td key={c.id} style={{ color: val >= 0 ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>{formatCurrency(val)}</td>;
-                    })}
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showClearConfirmation && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '400px' }}>
-            <h3 style={{ marginTop: 0 }}>Clear Data?</h3>
-            <p>Are you sure you want to clear all input fields? This action cannot be undone.</p>
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
-              <button className="secondary-button" style={{ flex: 1 }} onClick={() => setShowClearConfirmation(false)}>Cancel</button>
-              <button className="secondary-button" style={{ flex: 1, background: '#ef4444', color: 'white', borderColor: '#ef4444' }} onClick={confirmClearForm}>Clear All</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showIntroSurvey && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ marginTop: 0, color: '#334155' }}>Welcome to CollegeROI!</h2>
-              <p style={{ color: '#64748b' }}>Let's get you set up with a quick comparison.</p>
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-                {[1, 2, 3].map(step => (
-                  <div key={step} style={{ 
-                    flex: 1, 
-                    height: '4px', 
-                    background: step <= surveyStep ? '#6366f1' : '#e2e8f0',
-                    borderRadius: '2px'
-                  }} />
-                ))}
-              </div>
-            </div>
-
-            {surveyStep === 1 && (
-              <div>
-                <h3 style={{ fontSize: '1.1rem' }}>Select 2-5 colleges to compare</h3>
-                <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '1rem' }}>
-                  Choose from these popular colleges to see how the calculator works. You can add others later.
-                </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem' }}>
-                  {colleges.slice(0, 20).map(college => {
-                    const isSelected = surveySelectedColleges.find(c => c.name === college.name);
-                    return (
-                      <div 
-                        key={college.rank}
-                        onClick={() => handleSurveyToggleCollege(college)}
-                        style={{
-                          padding: '0.75rem',
-                          border: isSelected ? '2px solid #6366f1' : '1px solid #e2e8f0',
-                          borderRadius: '0.5rem',
-                          cursor: 'pointer',
-                          backgroundColor: isSelected ? '#eff6ff' : 'white',
-                          fontSize: '0.9rem',
-                          fontWeight: isSelected ? 'bold' : 'normal'
-                        }}
-                      >
-                        {college.name}
-                      </div>
-                    );
-                  })}
-                </div>
-                <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
-                  <button 
-                    className="calculate-button" 
-                    disabled={surveySelectedColleges.length < 2}
-                    onClick={() => setSurveyStep(2)}
-                    style={{ opacity: surveySelectedColleges.length < 2 ? 0.5 : 1 }}
+            <div className="column center-col">
+              <div className="section-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <button
+                    type="button"
+                    className="toggle-button"
+                    onClick={() => setShowLeftPanel(!showLeftPanel)}
+                    title={showLeftPanel ? "Collapse Inputs" : "Expand Inputs"}
                   >
-                    Next ({surveySelectedColleges.length} selected)
+                    {showLeftPanel ? <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg> : <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>}
+                  </button>
+                  <h3>Estimates & Summaries</h3>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button type="button" className="schedule-button" onClick={handleSave} aria-label="Save" title="Save">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                    {saveSuccess && (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '0.5rem' }}><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    )}
+                  </button>
+                  <button type="button" className="schedule-button" onClick={handleClearSave} aria-label="Clear Saved Data" title="Clear Saved Data">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  </button>
+                  <button type="button" className="schedule-button" onClick={handleExport} aria-label="Export" title="Export">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  </button>
+                  <button
+                    type="button"
+                    className="toggle-button"
+                    onClick={() => setShowRightPanel(!showRightPanel)}
+                    title={showRightPanel ? "Collapse Compare" : "Expand Compare"}
+                  >
+                    {showRightPanel ? <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg> : <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>}
                   </button>
                 </div>
               </div>
-            )}
-
-            {surveyStep === 2 && (
-              <div>
-                <h3 style={{ fontSize: '1.1rem' }}>Financial Estimates</h3>
-                <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '1.5rem' }}>
-                  Enter rough estimates to apply to all selected colleges. You can refine these individually later.
-                </p>
-                <div className="input-group">
-                  <label>Estimated Annual Financial Aid ($)</label>
-                  <input 
-                    type="number" 
-                    placeholder="e.g. 5000"
-                    value={surveyFinancials.aid}
-                    onChange={(e) => setSurveyFinancials(prev => ({ ...prev, aid: e.target.value }))}
-                  />
+              <div className="result-card">
+                <h4 style={{ margin: 0, color: '#334155' }}>
+                  Estimated Cost Summary
+                  <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                      These figures are projections based on the data you entered. Actual cost to attend college will vary based on actuals.
+                    </span>
+                  </span>
+                </h4>
+                <div className="result-item">
+                  <h4>4-Year Cost</h4>
+                  <div className="value">{formatCurrency(calculateFourYearCost())}</div>
                 </div>
-                <div className="input-group">
-                  <label>Estimated Annual Family Contribution ($)</label>
-                  <input 
-                    type="number" 
-                    placeholder="e.g. 10000"
-                    value={surveyFinancials.contribution}
-                    onChange={(e) => setSurveyFinancials(prev => ({ ...prev, contribution: e.target.value }))}
-                  />
+                <div className="result-item">
+                  <h4>4-Year Financial Aid</h4>
+                  <div className="value" style={{ color: '#10b981' }}>{formatCurrency(parseFloat(formData.financialAid) || 0)}</div>
                 </div>
-                <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between' }}>
-                  <button className="secondary-button" onClick={() => setSurveyStep(1)}>Back</button>
-                  <button className="calculate-button" onClick={() => setSurveyStep(3)}>Next</button>
+                <div className="result-item">
+                  <h4>4-Year Family Contribution</h4>
+                  <div className="value">{formatCurrency(calculateFourYearFamilyContribution())}</div>
+                </div>
+                <div className="result-item">
+                  <h4>Total Cost of College</h4>
+                  <div className="value">{formatCurrency(calculateTotalCostOfCollege())}</div>
                 </div>
               </div>
-            )}
+              <div className="result-card">
+                <h4 style={{ margin: 0, color: '#334155' }}>
+                  Estimated Loan Summary
+                  <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                      This shows the estimated breakdown of your loan principal, monthly payments, and total interest paid over the loan term, based on the data you entered. Actual loan principal, monthly payments, and total interest paid to attend college will vary based on actuals.
+                    </span>
+                  </span>
+                </h4>
+                <div className="result-item">
+                  <h4>Loan Amount</h4>
+                  <div className="value">{formatCurrency(calculateLoanAmount())}</div>
+                </div>
+                <div className="result-item">
+                  <h4>Monthly Payment</h4>
+                  <div className="value">{formatCurrency(calculateMonthlyPayment())}</div>
+                </div>
+                <div className="result-item">
+                  <h4>Total Interest Paid</h4>
+                  <div className="value">{formatCurrency(calculateTotalInterest())}</div>
+                </div>
+              </div>
+              <div className="result-card">
+                <h4 style={{ margin: 0, color: '#334155' }}>
+                  Estimated Cash Flow
+                  <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                      Estimated of the breakdown of your monthly income, taxes, loan payments, and expenses to show your expected net monthly cash flow. Actual net monthly cash flow will vary based on your specific circumstances.
+                    </span>
+                  </span>
+                </h4>
+                <table className="ledger-table">
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th style={{ textAlign: 'right' }}>Amount</th>
+                      <th style={{ textAlign: 'right' }}>Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Estimated Monthly Salary</td>
+                      <td style={{ textAlign: 'right', color: '#10b981' }}>{formatCurrency(getMonthlyGross())}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(getMonthlyGross())}</td>
+                    </tr>
+                    <tr>
+                      <td>Estimated Taxes</td>
+                      <td style={{ textAlign: 'right', color: '#ef4444' }}>-{formatCurrency(getMonthlyTax())}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(getMonthlyTakeHome())}</td>
+                    </tr>
+                    <tr>
+                      <td>Loan Payment</td>
+                      <td style={{ textAlign: 'right', color: '#ef4444' }}>-{formatCurrency(calculateMonthlyPayment())}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(calculateTakeHomeAfterLoan())}</td>
+                    </tr>
+                    <tr>
+                      <td>Monthly Expenses</td>
+                      <td style={{ textAlign: 'right', color: '#ef4444' }}>-{formatCurrency(parseFloat(formData.expenses) || 0)}</td>
+                      <td style={{ textAlign: 'right', fontWeight: 'bold', color: calculateNetMonthlyCashFlow() >= 0 ? '#10b981' : '#ef4444' }}>
+                        {formatCurrency(calculateNetMonthlyCashFlow())}
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr style={{ borderTop: '2px solid #cbd5e1' }}>
+                      <td style={{ fontWeight: '800', paddingTop: '0.75rem', color: '#1e293b' }}>Net Monthly Cash Flow</td>
+                      <td></td>
+                      <td style={{ textAlign: 'right', fontWeight: '800', paddingTop: '0.75rem', fontSize: '1.1rem', color: calculateNetMonthlyCashFlow() >= 0 ? '#10b981' : '#ef4444' }}>
+                        {formatCurrency(calculateNetMonthlyCashFlow())}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              <div className="result-card">
+                <h4 style={{ margin: 0, color: '#334155' }}>
+                  10-Year Return On Investment (ROI)
+                  <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                      Potential savings accumulated over 10 years based on your estimated net cash flow and 401k contributions.
+                    </span>
+                  </span>
+                </h4>
+                <div className="result-item">
+                  <h4>Accumulated Net Cash Flow</h4>
+                  <div className="value" style={{ color: calculateTenYearNetFlow() >= 0 ? '#10b981' : '#ef4444' }}>
+                    {formatCurrency(calculateTenYearNetFlow())}
+                  </div>
+                </div>
+                <div className="result-item">
+                  <h4>
+                    Total 401k Contribution
+                    <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                      <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                        The total amount contributed to your 401k retirement account over 10 years. This money is saved for your future and reduces your taxable income.
+                      </span>
+                    </span>
+                  </h4>
+                  <div className="value">{formatCurrency(calculateTenYear401k())}</div>
+                </div>
+                <div className="result-item">
+                  <h4>Total Projected Savings</h4>
+                  <div className="value" style={{ color: calculateTotalTenYearSavings() >= 0 ? '#10b981' : '#ef4444' }}>
+                    {formatCurrency(calculateTotalTenYearSavings())}
+                  </div>
+                </div>
+              </div>
 
-            {surveyStep === 3 && (
-              <div>
-                <h3 style={{ fontSize: '1.1rem' }}>Loan Assumptions</h3>
-                <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '0.5rem', marginBottom: '1.5rem', border: '1px solid #e2e8f0' }}>
-                  <p style={{ margin: '0 0 1rem 0' }}>For this simulation, we will assume:</p>
-                  <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#334155' }}>
-                    <li style={{ marginBottom: '0.5rem' }}><strong>6.5%</strong> Interest Rate</li>
-                    <li><strong>10 Year</strong> Loan Term</li>
-                  </ul>
-                  <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '1rem' }}>You can adjust these settings for each college later.</p>
+              {showSchedule && (
+                <div ref={scheduleRef} className="result-card" style={{ padding: 0, overflow: 'hidden' }}>
+                  <button
+                    type="button"
+                    className={`section-toggle ${!scheduleOpen ? 'closed' : ''}`}
+                    onClick={() => setScheduleOpen(!scheduleOpen)}
+                    style={{ borderRadius: 0, borderTop: 'none', borderLeft: 'none', borderRight: 'none' }}
+                  >
+                    <span>Estimated Payment Schedule</span>
+                    <span>{scheduleOpen ? '−' : '+'}</span>
+                  </button>
+                  {scheduleOpen && (
+                    <div className="schedule-container">
+                      <table className="schedule-table">
+                        <thead>
+                          <tr>
+                            <th>Year / Month</th>
+                            <th>Payment</th>
+                            <th>Principal</th>
+                            <th>Interest</th>
+                            <th>Balance</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paymentSchedule.length > 0 ? (
+                            getYearlyData().map((yearData) => (
+                              <Fragment key={yearData.year}>
+                                <tr
+                                  onClick={() => toggleYear(yearData.year)}
+                                  style={{ cursor: 'pointer', fontWeight: 'bold', background: 'rgba(255,255,255,0.6)' }}
+                                >
+                                  <td style={{ textAlign: 'left', paddingLeft: '1rem' }}>
+                                    <span style={{ display: 'inline-block', width: '1.5rem' }}>{expandedYears.includes(yearData.year) ? '−' : '+'}</span>
+                                    Year {yearData.year}
+                                  </td>
+                                  <td>{formatCurrency(yearData.payment)}</td>
+                                  <td>{formatCurrency(yearData.principal)}</td>
+                                  <td>{formatCurrency(yearData.interest)}</td>
+                                  <td>{formatCurrency(yearData.balance)}</td>
+                                </tr>
+                                {expandedYears.includes(yearData.year) && yearData.months.map((row) => (
+                                  <tr key={row.month} style={{ background: 'rgba(255,255,255,0.3)' }}>
+                                    <td style={{ textAlign: 'left', paddingLeft: '3rem' }}>Month {row.month}</td>
+                                    <td>{formatCurrency(row.payment)}</td>
+                                    <td>{formatCurrency(row.principal)}</td>
+                                    <td>{formatCurrency(row.interest)}</td>
+                                    <td>{formatCurrency(row.balance)}</td>
+                                  </tr>
+                                ))}
+                              </Fragment>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={5} style={{ textAlign: 'center', padding: '1rem' }}>
+                                No loan data available. Please check your inputs.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <button className="secondary-button" onClick={() => setSurveyStep(2)}>Back</button>
-                  <button className="calculate-button" onClick={handleSurveyFinish}>See Comparison</button>
+              )}
+            </div>
+            {showRightPanel && (
+              <div className="column right-col">
+                <div className="section-header">
+                  <h3>Compare</h3>
+                  {comparedColleges.length > 0 && (
+                    <button
+                      className="secondary-button"
+                      style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                      onClick={() => setShowComparisonModal(true)}
+                    >
+                      Detailed Comparison
+                    </button>
+                  )}
                 </div>
+
+                {comparedColleges.length === 0 ? (
+                  <p style={{ color: '#64748b', fontStyle: 'italic', fontSize: '0.9rem' }}>
+                    Add colleges to comparison to see them here.
+                  </p>
+                ) : (
+                  <div className="comparison-list">
+                    {comparedColleges.map(college => {
+                      const metrics = calculateMetrics(college.data);
+                      const isSelected = formData.collegeName.toLowerCase() === college.name.toLowerCase();
+                      return (
+                        <div
+                          key={college.id}
+                          className="comparison-card"
+                          onClick={() => handleLoadComparison(college)}
+                          title={isSelected ? "Currently viewing" : "Click to load data"}
+                          style={isSelected ? { border: '2px solid var(--primary-color)', backgroundColor: 'var(--accent-blue)' } : undefined}
+                        >
+                          <div className="comparison-card-header">
+                            <span className="college-name">
+                              {college.name}
+                              {isSelected && (
+                                <span style={{
+                                  fontSize: '0.7rem',
+                                  marginLeft: '0.5rem',
+                                  color: 'var(--text-primary)',
+                                  backgroundColor: 'var(--accent-blue)',
+                                  padding: '0.1rem 0.4rem',
+                                  borderRadius: '1rem',
+                                  verticalAlign: 'middle',
+                                  fontWeight: 'normal'
+                                }}>
+                                  Active
+                                </span>
+                              )}
+                            </span>
+                            <button
+                              className="comparison-remove"
+                              onClick={(e) => handleRemoveComparison(e, college.id)}
+                              title="Remove from comparison"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                          </div>
+                          <div className="comparison-metric">
+                            <span className="label">Net Monthly Flow</span>
+                            <span className={`value ${metrics.netMonthlyCashFlow >= 0 ? 'positive' : 'negative'}`}>
+                              {formatCurrency(metrics.netMonthlyCashFlow)}
+                            </span>
+                          </div>
+                          <div className="comparison-metric">
+                            <span className="label">10-Year ROI</span>
+                            <span className={`value ${metrics.totalSavings >= 0 ? 'positive' : 'negative'}`}>
+                              {formatCurrency(metrics.totalSavings)}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
           </div>
+
+          {showTuitionModal && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <h3>4-Year Cost Breakdown</h3>
+                <div className="input-form" style={{ maxWidth: '100%', overflowX: 'auto' }}>
+                  {['1', '2', '3', '4'].map((year) => (
+                    <div key={year}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <h4 style={{ margin: 0, color: '#334155' }}>Year {year}</h4>
+                        {year === '1' && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#334155' }}>Inflation %</span>
+                            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                              <input
+                                type="number"
+                                placeholder="Inflation"
+                                title="Enter annual inflation rate to apply when copying to future years"
+                                value={inflationRate}
+                                onChange={(e) => setInflationRate(e.target.value)}
+                                style={{
+                                  width: '90px',
+                                  padding: '0.25rem 0.5rem 0.25rem 0.5rem',
+                                  fontSize: '0.8rem',
+                                  border: '1px solid #cbd5e1',
+                                  borderRadius: '0.25rem',
+                                  background: 'white',
+                                  color: 'black'
+                                }}
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={handleCopyYear1}
+                              style={{
+                                fontSize: '0.8rem',
+                                padding: '0.25rem 0.5rem',
+                                background: '#e2e8f0',
+                                border: 'none',
+                                borderRadius: '0.25rem',
+                                cursor: 'pointer',
+                                color: '#475569'
+                              }}
+                            >
+                              Copy to all ↓
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <div className="input-row">
+                        <div className="input-group">
+                          <label htmlFor={`tuition${year}`}>Tuition + Other</label>
+                          <input
+                            type="number"
+                            id={`tuition${year}`}
+                            name={`tuition${year}`}
+                            min="0"
+                            placeholder="e.g. 40000"
+                            value={tuitionBreakdown[`tuition${year}` as keyof typeof tuitionBreakdown]}
+                            onChange={handleTuitionChange}
+                            onKeyDown={handleKeyDown}
+                          />
+                        </div>
+                        <div className="input-group">
+                          <label htmlFor={`roomBoard${year}`}>Room + Board</label>
+                          <input
+                            type="number"
+                            id={`roomBoard${year}`}
+                            name={`roomBoard${year}`}
+                            min="0"
+                            placeholder="e.g. 15000"
+                            value={tuitionBreakdown[`roomBoard${year}` as keyof typeof tuitionBreakdown]}
+                            onChange={handleTuitionChange}
+                            onKeyDown={handleKeyDown}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <button type="button" className="calculate-button" onClick={handleTuitionDone} style={{ flex: 1 }}>
+                      Done
+                    </button>
+                    <button
+                      type="button"
+                      className="calculate-button"
+                      onClick={handleTuitionClear}
+                      style={{ flex: 1, background: '#64748b' }}>
+                      Clear All
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showFinancialAidModal && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <h3>4-Year Financial Aid Breakdown</h3>
+                <div className="input-form" style={{ maxWidth: '100%', overflowX: 'auto' }}>
+                  {['1', '2', '3', '4'].map((year) => (
+                    <div key={year}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <h4 style={{ margin: 0, color: '#334155' }}>Year {year}</h4>
+                        {year === '1' && (
+                          <button
+                            type="button"
+                            onClick={handleCopyFinancialAidYear1}
+                            style={{
+                              fontSize: '0.8rem',
+                              padding: '0.25rem 0.5rem',
+                              background: '#e2e8f0',
+                              border: 'none',
+                              borderRadius: '0.25rem',
+                              cursor: 'pointer',
+                              color: '#475569'
+                            }}
+                          >
+                            Copy to all ↓
+                          </button>
+                        )}
+                      </div>
+                      <div className="input-group">
+                        <label htmlFor={`financialAid${year}`}>Financial Aid ($)</label>
+                        <input
+                          type="number"
+                          id={`financialAid${year}`}
+                          name={`financialAid${year}`}
+                          min="0"
+                          placeholder="e.g. 5000"
+                          value={tuitionBreakdown[`financialAid${year}` as keyof typeof tuitionBreakdown]}
+                          onChange={handleTuitionChange}
+                          onKeyDown={handleKeyDown}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                    <button type="button" className="calculate-button" onClick={handleFinancialAidDone} style={{ flex: 1 }}>
+                      Done
+                    </button>
+                    <button
+                      type="button"
+                      className="calculate-button"
+                      onClick={handleFinancialAidClear}
+                      style={{ flex: 1, background: '#64748b' }}>
+                      Clear All
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showExpensesModal && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <h3>Monthly Expenses Breakdown</h3>
+                <div className="input-form">
+                  <div className="input-row">
+                    <div className="input-group">
+                      <label htmlFor="rent">
+                        Rent
+                        <span className="info-icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                          <span className="tooltip-text">Monthly rent or mortgage payment</span>
+                        </span>
+                      </label>
+                      <input
+                        type="number"
+                        id="rent"
+                        name="rent"
+                        min="0"
+                        placeholder="e.g. 1500"
+                        value={expensesBreakdown.rent}
+                        onChange={handleExpensesChange}
+                        onKeyDown={handleKeyDown}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label htmlFor="groceries">
+                        Groceries
+                        <span className="info-icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                          <span className="tooltip-text">Food and household supplies</span>
+                        </span>
+                      </label>
+                      <input
+                        type="number"
+                        id="groceries"
+                        name="groceries"
+                        min="0"
+                        placeholder="e.g. 400"
+                        value={expensesBreakdown.groceries}
+                        onChange={handleExpensesChange}
+                        onKeyDown={handleKeyDown}
+                      />
+                    </div>
+                  </div>
+                  <div className="input-row">
+                    <div className="input-group">
+                      <label htmlFor="eatingOut">
+                        Eating out
+                        <span className="info-icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                          <span className="tooltip-text">Restaurants, cafes, and takeout</span>
+                        </span>
+                      </label>
+                      <input
+                        type="number"
+                        id="eatingOut"
+                        name="eatingOut"
+                        min="0"
+                        placeholder="e.g. 200"
+                        value={expensesBreakdown.eatingOut}
+                        onChange={handleExpensesChange}
+                        onKeyDown={handleKeyDown}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label htmlFor="utilities">
+                        Utilities
+                        <span className="info-icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                          <span className="tooltip-text">Electricity, water, gas, internet, phone</span>
+                        </span>
+                      </label>
+                      <input
+                        type="number"
+                        id="utilities"
+                        name="utilities"
+                        min="0"
+                        placeholder="e.g. 150"
+                        value={expensesBreakdown.utilities}
+                        onChange={handleExpensesChange}
+                        onKeyDown={handleKeyDown}
+                      />
+                    </div>
+                  </div>
+                  <div className="input-row">
+                    <div className="input-group">
+                      <label htmlFor="transportation">
+                        Transportation
+                        <span className="info-icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                          <span className="tooltip-text">Gas, insurance, maintenance, public transit</span>
+                        </span>
+                      </label>
+                      <input
+                        type="number"
+                        id="transportation"
+                        name="transportation"
+                        min="0"
+                        placeholder="e.g. 300"
+                        value={expensesBreakdown.transportation}
+                        onChange={handleExpensesChange}
+                        onKeyDown={handleKeyDown}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label htmlFor="healthCare">
+                        HealthCare
+                        <span className="info-icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                          <span className="tooltip-text">Insurance premiums, copays, medications</span>
+                        </span>
+                      </label>
+                      <input
+                        type="number"
+                        id="healthCare"
+                        name="healthCare"
+                        min="0"
+                        placeholder="e.g. 100"
+                        value={expensesBreakdown.healthCare}
+                        onChange={handleExpensesChange}
+                        onKeyDown={handleKeyDown}
+                      />
+                    </div>
+                  </div>
+                  <div className="input-row">
+                    <div className="input-group">
+                      <label htmlFor="miscellaneous">
+                        Miscellaneous
+                        <span className="info-icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                          <span className="tooltip-text">Clothing, entertainment, personal care</span>
+                        </span>
+                      </label>
+                      <input
+                        type="number"
+                        id="miscellaneous"
+                        name="miscellaneous"
+                        min="0"
+                        placeholder="e.g. 100"
+                        value={expensesBreakdown.miscellaneous}
+                        onChange={handleExpensesChange}
+                        onKeyDown={handleKeyDown}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label htmlFor="contribution401k">
+                        401k Contribution
+                        <span className="info-icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                          <span className="tooltip-text" style={{ width: '220px' }}>A tax-advantaged retirement savings plan. Contributions are often deducted from your paycheck before taxes.</span>
+                        </span>
+                      </label>
+                      <input
+                        type="number"
+                        id="contribution401k"
+                        name="contribution401k"
+                        min="0"
+                        placeholder="e.g. 500"
+                        value={expensesBreakdown.contribution401k}
+                        onChange={handleExpensesChange}
+                        onKeyDown={handleKeyDown}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                    <button type="button" className="calculate-button" onClick={handleExpensesDone} style={{ flex: 1 }}>
+                      Done
+                    </button>
+                    <button
+                      type="button"
+                      className="calculate-button"
+                      onClick={handleExpensesClear}
+                      style={{ flex: 1, background: '#64748b' }}>
+                      Clear All
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showTaxModal && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <h3>Estimated Monthly Tax Breakdown</h3>
+                <p style={{ color: '#64748b', marginBottom: '1rem' }}>
+                  Monthly Gross Income: <strong>{formatCurrency(getMonthlyGross())}</strong>
+                </p>
+                <div className="input-form">
+                  <div className="input-row">
+                    <div className="input-group">
+                      <label htmlFor="federal">
+                        Federal Tax (%)
+                        <span className="info-icon">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                          <div className="tooltip-text wide-tooltip">
+                            <div style={{ marginBottom: '0.5rem', fontWeight: 'bold', textAlign: 'center' }}>2024 Tax Brackets (Single)</div>
+                            <table className="tooltip-table">
+                              <thead>
+                                <tr><th style={{ textAlign: 'left' }}>Income Range</th><th style={{ textAlign: 'right' }}>Rate</th></tr>
+                              </thead>
+                              <tbody>
+                                <tr><td>$0 - $11,600</td><td style={{ textAlign: 'right' }}>10%</td></tr>
+                                <tr><td>$11,601 - $47,150</td><td style={{ textAlign: 'right' }}>12%</td></tr>
+                                <tr><td>$47,151 - $100,525</td><td style={{ textAlign: 'right' }}>22%</td></tr>
+                                <tr><td>$100,526 - $191,950</td><td style={{ textAlign: 'right' }}>24%</td></tr>
+                                <tr><td>$191,951 - $243,725</td><td style={{ textAlign: 'right' }}>32%</td></tr>
+                                <tr><td>$243,726 - $609,350</td><td style={{ textAlign: 'right' }}>35%</td></tr>
+                                <tr><td>$609,351+</td><td style={{ textAlign: 'right' }}>37%</td></tr>
+                              </tbody>
+                            </table>
+                            <div style={{ marginTop: '0.5rem', fontSize: '0.65rem', fontStyle: 'italic', textAlign: 'center' }}>* Standard deduction: $14,600</div>
+                          </div>
+                        </span>
+                      </label>
+                      <input
+                        type="number"
+                        id="federal"
+                        name="federal"
+                        step="0.1"
+                        value={taxRates.federal}
+                        onChange={handleTaxChange}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label htmlFor="state">State Tax (%)</label>
+                      <input
+                        type="number"
+                        id="state"
+                        name="state"
+                        step="0.1"
+                        value={taxRates.state}
+                        onChange={handleTaxChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="input-row">
+                    <div className="input-group">
+                      <label htmlFor="city">City/County Tax (%)</label>
+                      <input
+                        type="number"
+                        id="city"
+                        name="city"
+                        step="0.1"
+                        value={taxRates.city}
+                        onChange={handleTaxChange}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label htmlFor="socialSecurity">Social Security (%)</label>
+                      <input
+                        type="number"
+                        id="socialSecurity"
+                        name="socialSecurity"
+                        step="0.1"
+                        value={taxRates.socialSecurity}
+                        onChange={handleTaxChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="input-row">
+                    <div className="input-group">
+                      <label htmlFor="medicare">Medicare (%)</label>
+                      <input
+                        type="number"
+                        id="medicare"
+                        name="medicare"
+                        step="0.1"
+                        value={taxRates.medicare}
+                        onChange={handleTaxChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="result-card" style={{ marginTop: '1rem', background: '#f8fafc' }}>
+                    <div className="result-item" style={{ borderBottom: 'none', paddingBottom: '0.5rem' }}>
+                      <h4>Total Monthly Tax</h4>
+                      <div className="value" style={{ fontSize: '1.1rem', color: '#ef4444' }}>
+                        {formatCurrency(getMonthlyTax())}
+                      </div>
+                    </div>
+                    <div style={{ padding: '0 0 1rem 0', borderBottom: '1px solid #e2e8f0', marginBottom: '1rem', fontSize: '0.85rem', color: '#64748b', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Federal ({taxRates.federal}%)</span>
+                        <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.federal) || 0) / 100)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>State ({taxRates.state}%)</span>
+                        <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.state) || 0) / 100)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>City/County ({taxRates.city}%)</span>
+                        <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.city) || 0) / 100)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Social Security ({taxRates.socialSecurity}%)</span>
+                        <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.socialSecurity) || 0) / 100)}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Medicare ({taxRates.medicare}%)</span>
+                        <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.medicare) || 0) / 100)}</span>
+                      </div>
+                    </div>
+                    <div className="result-item">
+                      <h4>Est. Monthly Take-home</h4>
+                      <div className="value" style={{ fontSize: '1.1rem', color: '#10b981' }}>
+                        {formatCurrency(getMonthlyTakeHome())}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                    <button className="calculate-button" onClick={() => setShowTaxModal(false)} style={{ flex: 1 }}>
+                      Done
+                    </button>
+                    <button
+                      type="button"
+                      className="calculate-button"
+                      onClick={handleTaxClear}
+                      style={{ flex: 1, background: '#64748b' }}>
+                      Clear All
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showComparisonModal && (
+            <div className="modal-overlay">
+              <div className="modal-content comparison-modal-content">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h3 style={{ margin: 0 }}>
+                    College Comparison (Estimated Costs & ROI)
+                    <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                      <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                        Side-by-side comparison of estimated key financial metrics for your saved colleges.
+                      </span>
+                    </span>
+                  </h3>
+                  <button onClick={() => setShowComparisonModal(false)} className="secondary-button">Close</button>
+                </div>
+                <div className="comparison-table-container">
+                  <table className="comparison-table">
+                    <thead>
+                      <tr>
+                        <th></th>
+                        {comparedColleges.map(c => <th key={c.id}>{c.name}</th>)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>4-Year Cost</td>
+                        {comparedColleges.map(c => <td key={c.id}>{formatCurrency(calculateMetrics(c.data).fourYearCost)}</td>)}
+                      </tr>
+                      <tr>
+                        <td>4-Year Financial Aid</td>
+                        {comparedColleges.map(c => <td key={c.id} style={{ color: '#10b981' }}>{formatCurrency(calculateMetrics(c.data).fourYearAid)}</td>)}
+                      </tr>
+                      <tr>
+                        <td>Loan Amount</td>
+                        {comparedColleges.map(c => <td key={c.id}>{formatCurrency(calculateMetrics(c.data).loanAmount)}</td>)}
+                      </tr>
+                      <tr>
+                        <td>Total Interest Paid</td>
+                        {comparedColleges.map(c => <td key={c.id}>{formatCurrency(calculateMetrics(c.data).totalInterest)}</td>)}
+                      </tr>
+                      <tr style={{ background: '#f8fafc', fontWeight: 'bold' }}>
+                        <td>Total Cost of College</td>
+                        {comparedColleges.map(c => <td key={c.id}>{formatCurrency(calculateMetrics(c.data).totalCost)}</td>)}
+                      </tr>
+                      <tr>
+                        <td>Monthly Loan Payment</td>
+                        {comparedColleges.map(c => <td key={c.id} style={{ color: '#ef4444' }}>{formatCurrency(calculateMetrics(c.data).monthlyPayment)}</td>)}
+                      </tr>
+                      <tr>
+                        <td>Net Monthly Cash Flow</td>
+                        {comparedColleges.map(c => {
+                          const val = calculateMetrics(c.data).netMonthlyCashFlow;
+                          return <td key={c.id} style={{ color: val >= 0 ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>{formatCurrency(val)}</td>;
+                        })}
+                      </tr>
+                      <tr>
+                        <td>10-Year Projected Savings</td>
+                        {comparedColleges.map(c => {
+                          const val = calculateMetrics(c.data).totalSavings;
+                          return <td key={c.id} style={{ color: val >= 0 ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>{formatCurrency(val)}</td>;
+                        })}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showClearConfirmation && (
+            <div className="modal-overlay">
+              <div className="modal-content" style={{ maxWidth: '400px' }}>
+                <h3 style={{ marginTop: 0 }}>Clear Data?</h3>
+                <p>Are you sure you want to clear all input fields? This action cannot be undone.</p>
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+                  <button className="secondary-button" style={{ flex: 1 }} onClick={() => setShowClearConfirmation(false)}>Cancel</button>
+                  <button className="secondary-button" style={{ flex: 1, background: '#ef4444', color: 'white', borderColor: '#ef4444' }} onClick={confirmClearForm}>Clear All</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showIntroSurvey && (
+            <div className="modal-overlay">
+              <div className="modal-content" style={{ maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <h2 style={{ marginTop: 0, color: '#334155' }}>Welcome to CollegeROI!</h2>
+                  <p style={{ color: '#64748b' }}>Let's get you set up with a quick comparison.</p>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                    {[1, 2, 3].map(step => (
+                      <div key={step} style={{
+                        flex: 1,
+                        height: '4px',
+                        background: step <= surveyStep ? 'var(--primary-color)' : '#e2e8f0',
+                        borderRadius: '2px'
+                      }} />
+                    ))}
+                  </div>
+                </div>
+
+                {surveyStep === 1 && (
+                  <div>
+                    <h3 style={{ fontSize: '1.1rem' }}>Select 2-5 colleges to compare</h3>
+                    <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '1rem' }}>
+                      Choose from these popular colleges to see how the calculator works. You can add others later.
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem' }}>
+                      {colleges.slice(0, 20).map(college => {
+                        const isSelected = surveySelectedColleges.find(c => c.name === college.name);
+                        return (
+                          <div
+                            key={college.rank}
+                            onClick={() => handleSurveyToggleCollege(college)}
+                            style={{
+                              padding: '0.75rem',
+                              border: isSelected ? '2px solid var(--primary-color)' : '1px solid #e2e8f0',
+                              borderRadius: '0.5rem',
+                              cursor: 'pointer',
+                              backgroundColor: isSelected ? 'var(--accent-blue)' : 'white',
+                              fontSize: '0.9rem',
+                              fontWeight: isSelected ? 'bold' : 'normal'
+                            }}
+                          >
+                            {college.name}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+                      <button
+                        className="calculate-button"
+                        disabled={surveySelectedColleges.length < 2}
+                        onClick={() => setSurveyStep(2)}
+                        style={{ opacity: surveySelectedColleges.length < 2 ? 0.5 : 1 }}
+                      >
+                        Next ({surveySelectedColleges.length} selected)
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {surveyStep === 2 && (
+                  <div>
+                    <h3 style={{ fontSize: '1.1rem' }}>Financial Estimates</h3>
+                    <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '1.5rem' }}>
+                      Enter rough estimates to apply to all selected colleges. You can refine these individually later.
+                    </p>
+                    <div className="input-group">
+                      <label>Estimated Annual Financial Aid ($)</label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 5000"
+                        value={surveyFinancials.aid}
+                        onChange={(e) => setSurveyFinancials(prev => ({ ...prev, aid: e.target.value }))}
+                      />
+                    </div>
+                    <div className="input-group">
+                      <label>Estimated Annual Family Contribution ($)</label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 10000"
+                        value={surveyFinancials.contribution}
+                        onChange={(e) => setSurveyFinancials(prev => ({ ...prev, contribution: e.target.value }))}
+                      />
+                    </div>
+                    <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between' }}>
+                      <button className="secondary-button" onClick={() => setSurveyStep(1)}>Back</button>
+                      <button className="calculate-button" onClick={() => setSurveyStep(3)}>Next</button>
+                    </div>
+                  </div>
+                )}
+
+                {surveyStep === 3 && (
+                  <div>
+                    <h3 style={{ fontSize: '1.1rem' }}>Loan Assumptions</h3>
+                    <div style={{ background: 'var(--bg-color)', padding: '1.5rem', borderRadius: '0.5rem', marginBottom: '1.5rem', border: '1px solid #e2e8f0' }}>
+                      <p style={{ margin: '0 0 1rem 0' }}>For this simulation, we will assume:</p>
+                      <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#334155' }}>
+                        <li style={{ marginBottom: '0.5rem' }}><strong>6.5%</strong> Interest Rate</li>
+                        <li><strong>10 Year</strong> Loan Term</li>
+                      </ul>
+                      <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '1rem' }}>You can adjust these settings for each college later.</p>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <button className="secondary-button" onClick={() => setSurveyStep(2)}>Back</button>
+                      <button className="calculate-button" onClick={handleSurveyFinish}>See Comparison</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <footer className="site-footer">
+            <p>
+              <strong>Disclaimer:</strong> The financial projections, college costs, and tax estimates provided by this tool are calculations based on user inputs and assumptions.
+              They are for informational purposes only and do not constitute professional financial, tax, or legal advice.
+              Please consult with a qualified professional before making any financial decisions.
+            </p>
+          </footer>
+
+          <div className="print-footer">
+            <span>Generated using CollegeROI.app</span>
+            <span>{new Date().toLocaleDateString()}</span>
+          </div>
         </div>
-      )}
-
-      <footer className="site-footer">
-        <p>
-          <strong>Disclaimer:</strong> The financial projections, college costs, and tax estimates provided by this tool are calculations based on user inputs and assumptions. 
-          They are for informational purposes only and do not constitute professional financial, tax, or legal advice. 
-          Please consult with a qualified professional before making any financial decisions.
-        </p>
-      </footer>
-
-      <div className="print-footer">
-        <span>Generated using CollegeROI.app</span>
-        <span>{new Date().toLocaleDateString()}</span>
-      </div>
+        <AgentSidebar isOpen={isAgentModeOpen} onClose={() => setIsAgentModeOpen(false)} />
+      </div> { /* End main-layout */}
     </div>
   );
 };

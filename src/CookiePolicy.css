@@ -45,7 +45,7 @@
 }
 
 .cookie-btn {
-  background: #6366f1;
+  background: var(--primary-color);
   color: white;
   border: none;
   padding: 0.75rem 2rem;
@@ -57,7 +57,7 @@
 }
 
 .cookie-btn:hover {
-  background: #4f46e5;
+  background: var(--secondary-color);
   transform: translateY(-1px);
 }
 
@@ -66,8 +66,15 @@
 }
 
 @keyframes slideUp {
-  from { transform: translateY(100%); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @media (max-width: 768px) {
@@ -76,12 +83,12 @@
     align-items: flex-start;
     gap: 1rem;
   }
-  
+
   .cookie-btn {
     width: 100%;
     text-align: center;
   }
-  
+
   .cookie-policy-container {
     padding: 1.5rem;
   }

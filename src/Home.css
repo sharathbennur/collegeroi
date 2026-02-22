@@ -1,11 +1,3 @@
-:root {
-  --primary-color: #6366f1;
-  --secondary-color: #a855f7;
-  --bg-color: #f8fafc;
-  --text-color: #1e293b;
-  --card-bg: rgba(255, 255, 255, 0.8);
-}
-
 body {
   margin: 0;
   background-color: var(--bg-color);
@@ -157,13 +149,27 @@ body {
 
 /* Animations */
 @keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Mobile Responsiveness */
@@ -179,7 +185,8 @@ body {
     max-width: 100%;
   }
 
-  .hero-section, .cta-section {
+  .hero-section,
+  .cta-section {
     text-align: center;
   }
 
@@ -193,7 +200,9 @@ body {
     width: 100%;
   }
 
-  .title { font-size: 2rem; }
+  .title {
+    font-size: 2rem;
+  }
 }
 
 .content-wrapper {
