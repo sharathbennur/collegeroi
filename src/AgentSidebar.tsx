@@ -10,7 +10,7 @@ interface AgentSidebarProps {
 const AgentSidebar = ({ isOpen, onClose }: AgentSidebarProps) => {
     const [input, setInput] = useState('');
     const { messages, submit, isLoading } = useStream({
-        apiUrl: 'http://localhost:8000/chat',
+        apiUrl: 'http://localhost:8000',
         assistantId: 'collegeroi-agent', // Need to provide an assistantId
     });
 
@@ -31,8 +31,8 @@ const AgentSidebar = ({ isOpen, onClose }: AgentSidebarProps) => {
         setInput('');
 
         try {
-            // Assuming the backend expects { messages: [{ role: 'user', content: '...' }] } or similar
-            await submit({ messages: [{ role: 'user', content: userMessage }] });
+            // Send the user message using type 'human' as expected by LangGraph useStream
+            await submit({ messages: [{ type: 'human', content: userMessage }] });
         } catch (error) {
             console.error('Error submitting message:', error);
             // Optional: restore input on error
