@@ -11,7 +11,8 @@ const AgentSidebar = ({ isOpen, onClose }: AgentSidebarProps) => {
     const [input, setInput] = useState('');
     const { messages, submit, isLoading } = useStream({
         apiUrl: 'http://localhost:8000',
-        assistantId: 'collegeroi-agent', // Need to provide an assistantId
+        assistantId: 'collegeroi-agent',
+        threadId: 'test-thread-id',
     });
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -19,13 +20,15 @@ const AgentSidebar = ({ isOpen, onClose }: AgentSidebarProps) => {
     // Auto-scroll to bottom of messages
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+    }, [messages, isLoading]);
 
     if (!isOpen) return null;
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        if (!input.trim() || isLoading) return;
+        if (!input.trim() || isLoading) {
+            return;
+        }
 
         const userMessage = input;
         setInput('');
@@ -34,7 +37,7 @@ const AgentSidebar = ({ isOpen, onClose }: AgentSidebarProps) => {
             // Send the user message using type 'human' as expected by LangGraph useStream
             await submit({ messages: [{ type: 'human', content: userMessage }] });
         } catch (error) {
-            console.error('Error submitting message:', error);
+            console.error('Error submitting message (caught in try/catch):', error);
             // Optional: restore input on error
             setInput(userMessage);
         }
