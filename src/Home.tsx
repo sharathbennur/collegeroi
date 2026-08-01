@@ -31,7 +31,11 @@ const Home = () => {
               </h1>
               <p className="tagline">
                 Empowering Students, Parents & Guardians - make data-driven &nbsp;
-                <span title="Return on Investment: A measure of the profitability of an investment relative to its cost." style={{ margin: 0, color: 'inherit', cursor: 'help', borderBottom: '1px dotted currentColor' }}>
+                <span
+                  title="Return on Investment: A measure of the profitability of an investment relative to its cost."
+                  className="roi-term"
+                  tabIndex={0}
+                >
                   ROI
                 </span>-based college decisions.
               </p>

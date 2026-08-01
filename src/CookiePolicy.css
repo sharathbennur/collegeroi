@@ -3,8 +3,8 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
   border-top: 1px solid #e2e8f0;
   padding: 1.5rem 2rem;
   box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -28,7 +28,7 @@
 
 .cookie-text p {
   margin: 0;
-  color: #334155;
+  color: #1e293b;
   line-height: 1.5;
   font-size: 0.95rem;
 }
@@ -36,7 +36,7 @@
 .cookie-text ul {
   margin: 0.5rem 0 0 0;
   padding-left: 1.5rem;
-  color: #475569;
+  color: #334155;
   font-size: 0.9rem;
 }
 
@@ -53,12 +53,18 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: background-color 0.2s, transform 0.1s;
+  transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
 }
 
 .cookie-btn:hover {
   background: #4f46e5;
   transform: translateY(-1px);
+}
+
+.cookie-btn:focus-visible {
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
 }
 
 .cookie-btn:active {
@@ -86,3 +92,4 @@
     padding: 1.5rem;
   }
 }
+

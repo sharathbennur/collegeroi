@@ -33,19 +33,19 @@ body {
 }
 
 .circle-1 {
-  width: 300px;
-  height: 300px;
+  width: 320px;
+  height: 320px;
   background: var(--primary-color);
-  top: -50px;
-  left: -50px;
+  top: -48px;
+  left: -48px;
 }
 
 .circle-2 {
   width: 400px;
   height: 400px;
   background: var(--secondary-color);
-  bottom: -100px;
-  right: -100px;
+  bottom: -96px;
+  right: -96px;
 }
 
 /* Hero Section */
@@ -71,7 +71,20 @@ body {
 
 .tagline {
   font-size: 1.25rem;
-  color: #64748b;
+  color: #475569;
+}
+
+.roi-term {
+  margin: 0;
+  color: inherit;
+  cursor: help;
+  border-bottom: 1px dotted currentColor;
+  border-radius: 2px;
+}
+
+.roi-term:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 /* Info Cards */
@@ -110,7 +123,7 @@ body {
 .feature-content p {
   margin: 0;
   line-height: 1.6;
-  color: #475569;
+  color: #334155;
 }
 
 /* CTA Section */
@@ -123,7 +136,7 @@ body {
 .mission-statement {
   margin-bottom: 1.5rem;
   font-weight: 600;
-  color: #334155;
+  color: #1e293b;
 }
 
 .enter-button {
@@ -131,10 +144,10 @@ body {
   color: white;
   border: none;
   padding: 1rem 2.5rem;
-  font-size: 1.2rem;
-  border-radius: 50px;
+  font-size: 1.25rem;
+  border-radius: 2.5rem;
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 700;
   box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
   transition: transform 0.2s, box-shadow 0.2s;
   display: inline-flex;
@@ -147,12 +160,18 @@ body {
   box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
 }
 
+.enter-button:focus-visible {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
+}
+
 .arrow {
   transition: transform 0.2s;
 }
 
 .enter-button:hover .arrow {
-  transform: translateX(5px);
+  transform: translateX(4px);
 }
 
 /* Animations */
@@ -242,11 +261,11 @@ body {
 
 .home-footer {
   padding: 0.75rem 2rem;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(10px);
   border-top: 1px solid #e2e8f0;
   font-size: 0.75rem;
-  color: #64748b;
+  color: #475569;
   text-align: center;
   line-height: 1.4;
   z-index: 1;

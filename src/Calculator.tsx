@@ -42,9 +42,9 @@ const helpTopics = [
         <br /><br />
         Try these tools:
         <br />
-        • <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer" style={{ color: '#6366f1' }}>ChatGPT</a>
+        • <a href="https://chatgpt.com" target="_blank" rel="noopener noreferrer" className="back-link">ChatGPT</a>
         <br />
-        • <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer" style={{ color: '#6366f1' }}>Gemini</a>
+        • <a href="https://gemini.google.com" target="_blank" rel="noopener noreferrer" className="back-link">Gemini</a>
       </>
     )
   },
@@ -928,11 +928,11 @@ const Calculator = () => {
     };
   };
 
-  const getGridTemplateColumns = () => {
-    if (showLeftPanel && showRightPanel) return '1fr 2fr 1fr';
-    if (showLeftPanel && !showRightPanel) return '1fr 3fr';
-    if (!showLeftPanel && showRightPanel) return '3fr 1fr';
-    return '1fr';
+  const getGridClassName = () => {
+    if (showLeftPanel && showRightPanel) return 'content-grid grid-3col';
+    if (showLeftPanel && !showRightPanel) return 'content-grid grid-left-center';
+    if (!showLeftPanel && showRightPanel) return 'content-grid grid-center-right';
+    return 'content-grid grid-center-only';
   };
 
   const filteredTopics = helpTopics.filter(topic => 
@@ -943,13 +943,13 @@ const Calculator = () => {
   return (
     <div className="calculator-container">
       <nav className="navbar">
-        <Link to="/" className="brand-name">CollegeROI 🚀</Link>
+        <Link to="/" className="brand-name">CollegeROI</Link>
         {showFloatingMetrics && (
           <div className="navbar-metrics">
             {formData.collegeName && (
               <div className="metric">
                 <span className="label">College</span>
-                <span className="value" style={{ color: '#334155' }}>{formData.collegeName}</span>
+                <span className="value text-dark-val">{formData.collegeName}</span>
               </div>
             )}
             <div className="metric">
@@ -969,32 +969,30 @@ const Calculator = () => {
         
         <div className="settings-container">
           <button
-            className="secondary-button toggle-button"
+            className="secondary-button toggle-button btn-icon-square"
             onClick={() => setShowMainMenu(!showMainMenu)}
             title="Menu"
-            style={{ padding: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
           </button>
 
           {showGuidanceMenu && (
             <div className="guidance-menu">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h3 style={{ margin: 0, fontSize: '1.1rem' }}>Guidance</h3>
+              <div className="guidance-header">
+                <h3 className="guidance-title">Guidance</h3>
                 <button onClick={() => setShowGuidanceMenu(false)} className="toggle-button" title="Close Guidance">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
               </div>
               {!selectedTopic ? (
                 <>
-                  <div style={{ position: 'relative', marginBottom: '1rem' }}>
+                  <div className="guidance-search-wrapper">
                     <input
                       type="text"
                       placeholder="Search help topics..."
                       value={guidanceSearch}
                       onChange={(e) => setGuidanceSearch(e.target.value)}
-                      className="guidance-search"
-                      style={{ marginBottom: 0, paddingRight: '2.5rem' }}
+                      className="guidance-search guidance-search-input"
                     />
                     {guidanceSearch && (
                       <button
@@ -1014,7 +1012,7 @@ const Calculator = () => {
                       </li>
                     ))}
                     {filteredTopics.length === 0 && (
-                      <li style={{ color: '#64748b', fontStyle: 'italic', fontSize: '0.9rem' }}>No topics found.</li>
+                      <li className="text-no-results">No topics found.</li>
                     )}
                   </ul>
                 </>
@@ -1065,11 +1063,10 @@ const Calculator = () => {
       </nav>
 
       <div className={`instructions-panel ${showInstructions ? 'expanded' : 'collapsed'}`}>
-        <div className="top-section" style={{ position: 'relative' }}>
+        <div className="top-section instructions-top-wrapper">
           <button
             onClick={() => setShowInstructions(false)}
-            className="toggle-button"
-            style={{ position: 'absolute', top: '-10px', right: '-10px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '50%', width: '24px', height: '24px', padding: 0, boxShadow: '0 2px 4px rgba(0,0,0,0.1)', zIndex: 10 }}
+            className="toggle-button instructions-close-btn"
             title="Hide Instructions"
             aria-label="Hide Instructions"
           >
@@ -1078,9 +1075,9 @@ const Calculator = () => {
           <div className="instructions">
             <h4>Why use CollegeROI ?</h4>
             <p>
-              College is a significant investment. This calculator helps you evaluate the financial Return on Investment (<span className="info-icon" style={{ margin: 0, color: 'inherit', borderBottom: '1px dotted currentColor' }}>
+              College is a significant investment. This calculator helps you evaluate the financial Return on Investment (<span className="info-icon roi-info-trigger">
                 ROI
-                <span className="tooltip-text" style={{ width: '200px' }}>
+                <span className="tooltip-text tooltip-200">
                   Return on Investment: A measure of the profitability of an investment relative to its cost.
                 </span>
               </span>) of your degree 
@@ -1104,16 +1101,15 @@ const Calculator = () => {
         </div>
       </div>
       
-      <div className="content-grid" style={{ gridTemplateColumns: getGridTemplateColumns() }}>
+      <div className={getGridClassName()}>
         {showLeftPanel && (
           <div className="column left-col">
             <div className="section-header">
               <h3>Your Data </h3>
               <button 
                 type="button" 
-                className="secondary-button" 
+                className="secondary-button btn-clear-form" 
                 onClick={handleClearForm}
-                style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
                 title="Reset all inputs to default"
               >
                 Clear
@@ -1127,7 +1123,7 @@ const Calculator = () => {
               </button>
               {sections.costs && (
                 <div className="section-content">
-                  <div className="input-group" style={{ position: 'relative' }}>
+                  <div className="input-group input-group-relative">
                     <label htmlFor="collegeName">College Name</label>
                     <input
                       type="text"
@@ -1164,7 +1160,7 @@ const Calculator = () => {
                       className={invalidFields.includes('tuition') ? 'error-input' : ''}
                     />
                   </div>
-                  <button type="button" className="secondary-button" style={{ width: '100%' }} onClick={() => toggleSection('loans')}>
+                  <button type="button" className="secondary-button w-full" onClick={() => toggleSection('loans')}>
                     Next
                   </button>
                 </div>
@@ -1231,11 +1227,11 @@ const Calculator = () => {
                       />
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '1rem' }}>
-                    <button type="button" className="schedule-button" style={{ flex: 1 }} onClick={handleShowSchedule}>
+                  <div className="flex-gap-16">
+                    <button type="button" className="schedule-button flex-1" onClick={handleShowSchedule}>
                       Show Estimated Payment Schedule
                     </button>
-                    <button type="button" className="secondary-button" style={{ flex: 1 }} onClick={() => toggleSection('payments')}>
+                    <button type="button" className="secondary-button flex-1" onClick={() => toggleSection('payments')}>
                       Next
                     </button>
                   </div>
@@ -1293,7 +1289,7 @@ const Calculator = () => {
                     />
                   </div>
                   {error && <div className="error-message">{error}</div>}
-                  <button type="submit" className="add-to-compare-button" style={{ width: '100%' }} onClick={handleAddToCompare}>
+                  <button type="submit" className="add-to-compare-button w-full" onClick={handleAddToCompare}>
                     Add to Comparison
                   </button>
                 </div>
@@ -1305,7 +1301,7 @@ const Calculator = () => {
 
         <div className="column center-col">
           <div className="section-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div className="flex-align-center flex-gap-8">
               <button 
                 type="button" 
                 className="toggle-button" 
@@ -1316,11 +1312,11 @@ const Calculator = () => {
               </button>
               <h3>Estimates & Summaries</h3>
             </div>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div className="flex-gap-8">
               <button type="button" className="schedule-button" onClick={handleSave} aria-label="Save" title="Save">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                 {saveSuccess && (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '0.5rem' }}><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="check-icon-margin"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 )}
               </button>
               <button type="button" className="schedule-button" onClick={handleClearSave} aria-label="Clear Saved Data" title="Clear Saved Data">
@@ -1340,11 +1336,11 @@ const Calculator = () => {
             </div>
           </div>
           <div className="result-card">
-            <h4 style={{ margin: 0, color: '#334155' }}>
+            <h4 className="card-title-text">
               Estimated Cost Summary
-              <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+              <span className="info-icon info-icon-aligned">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                <span className="tooltip-text tooltip-250">
                   These figures are projections based on the data you entered. Actual cost to attend college will vary based on actuals.
                 </span>
               </span>
@@ -1355,7 +1351,7 @@ const Calculator = () => {
             </div>
             <div className="result-item">
               <h4>4-Year Financial Aid</h4>
-              <div className="value" style={{ color: '#10b981' }}>{formatCurrency(parseFloat(formData.financialAid) || 0)}</div>
+              <div className="value text-success-val">{formatCurrency(parseFloat(formData.financialAid) || 0)}</div>
             </div>
             <div className="result-item">
               <h4>4-Year Family Contribution</h4>
@@ -1367,11 +1363,11 @@ const Calculator = () => {
             </div>
           </div>
           <div className="result-card">
-            <h4 style={{ margin: 0, color: '#334155' }}>
+            <h4 className="card-title-text">
               Estimated Loan Summary
-              <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+              <span className="info-icon info-icon-aligned">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                <span className="tooltip-text tooltip-250">
                   This shows the estimated breakdown of your loan principal, monthly payments, and total interest paid over the loan term, based on the data you entered. Actual loan principal, monthly payments, and total interest paid to attend college will vary based on actuals.
                 </span>
               </span>
@@ -1390,11 +1386,11 @@ const Calculator = () => {
             </div>
           </div>
           <div className="result-card">
-            <h4 style={{ margin: 0, color: '#334155' }}>
+            <h4 className="card-title-text">
               Estimated Cash Flow
-              <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+              <span className="info-icon info-icon-aligned">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                <span className="tooltip-text tooltip-250">
                   Estimated of the breakdown of your monthly income, taxes, loan payments, and expenses to show your expected net monthly cash flow. Actual net monthly cash flow will vary based on your specific circumstances.
                 </span>
               </span>
@@ -1403,39 +1399,39 @@ const Calculator = () => {
               <thead>
                 <tr>
                   <th>Item</th>
-                  <th style={{ textAlign: 'right' }}>Amount</th>
-                  <th style={{ textAlign: 'right' }}>Balance</th>
+                  <th className="text-right">Amount</th>
+                  <th className="text-right">Balance</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td>Estimated Monthly Salary</td>
-                  <td style={{ textAlign: 'right', color: '#10b981' }}>{formatCurrency(getMonthlyGross())}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(getMonthlyGross())}</td>
+                  <td className="text-right text-success-val">{formatCurrency(getMonthlyGross())}</td>
+                  <td className="text-right text-bold-val">{formatCurrency(getMonthlyGross())}</td>
                 </tr>
                 <tr>
                   <td>Estimated Taxes</td>
-                  <td style={{ textAlign: 'right', color: '#ef4444' }}>-{formatCurrency(getMonthlyTax())}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(getMonthlyTakeHome())}</td>
+                  <td className="text-right text-danger-val">-{formatCurrency(getMonthlyTax())}</td>
+                  <td className="text-right text-bold-val">{formatCurrency(getMonthlyTakeHome())}</td>
                 </tr>
                 <tr>
                   <td>Loan Payment</td>
-                  <td style={{ textAlign: 'right', color: '#ef4444' }}>-{formatCurrency(calculateMonthlyPayment())}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{formatCurrency(calculateTakeHomeAfterLoan())}</td>
+                  <td className="text-right text-danger-val">-{formatCurrency(calculateMonthlyPayment())}</td>
+                  <td className="text-right text-bold-val">{formatCurrency(calculateTakeHomeAfterLoan())}</td>
                 </tr>
                 <tr>
                   <td>Monthly Expenses</td>
-                  <td style={{ textAlign: 'right', color: '#ef4444' }}>-{formatCurrency(parseFloat(formData.expenses) || 0)}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 'bold', color: calculateNetMonthlyCashFlow() >= 0 ? '#10b981' : '#ef4444' }}>
+                  <td className="text-right text-danger-val">-{formatCurrency(parseFloat(formData.expenses) || 0)}</td>
+                  <td className={`text-right text-bold-val ${calculateNetMonthlyCashFlow() >= 0 ? 'text-success-val' : 'text-danger-val'}`}>
                     {formatCurrency(calculateNetMonthlyCashFlow())}
                   </td>
                 </tr>
               </tbody>
               <tfoot>
-                <tr style={{ borderTop: '2px solid #cbd5e1' }}>
-                  <td style={{ fontWeight: '800', paddingTop: '0.75rem', color: '#1e293b' }}>Net Monthly Cash Flow</td>
+                <tr className="ledger-footer-border">
+                  <td className="ledger-footer-label">Net Monthly Cash Flow</td>
                   <td></td>
-                  <td style={{ textAlign: 'right', fontWeight: '800', paddingTop: '0.75rem', fontSize: '1.1rem', color: calculateNetMonthlyCashFlow() >= 0 ? '#10b981' : '#ef4444' }}>
+                  <td className={`ledger-footer-total ${calculateNetMonthlyCashFlow() >= 0 ? 'text-success-val' : 'text-danger-val'}`}>
                     {formatCurrency(calculateNetMonthlyCashFlow())}
                   </td>
                 </tr>
@@ -1443,27 +1439,27 @@ const Calculator = () => {
             </table>
           </div>
           <div className="result-card">
-            <h4 style={{ margin: 0, color: '#334155' }}>
+            <h4 className="card-title-text">
               10-Year Return On Investment (ROI)
-              <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+              <span className="info-icon info-icon-aligned">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                <span className="tooltip-text tooltip-250">
                   Potential savings accumulated over 10 years based on your estimated net cash flow and 401k contributions.
                 </span>
               </span>
             </h4>
             <div className="result-item">
               <h4>Accumulated Net Cash Flow</h4>
-              <div className="value" style={{ color: calculateTenYearNetFlow() >= 0 ? '#10b981' : '#ef4444' }}>
+              <div className={`value ${calculateTenYearNetFlow() >= 0 ? 'text-success-val' : 'text-danger-val'}`}>
                 {formatCurrency(calculateTenYearNetFlow())}
               </div>
             </div>
             <div className="result-item">
               <h4>
                 Total 401k Contribution
-                <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+                <span className="info-icon info-icon-aligned">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                  <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                  <span className="tooltip-text tooltip-250">
                     The total amount contributed to your 401k retirement account over 10 years. This money is saved for your future and reduces your taxable income.
                   </span>
                 </span>
@@ -1472,19 +1468,18 @@ const Calculator = () => {
             </div>
             <div className="result-item">
               <h4>Total Projected Savings</h4>
-              <div className="value" style={{ color: calculateTotalTenYearSavings() >= 0 ? '#10b981' : '#ef4444' }}>
+              <div className={`value ${calculateTotalTenYearSavings() >= 0 ? 'text-success-val' : 'text-danger-val'}`}>
                 {formatCurrency(calculateTotalTenYearSavings())}
               </div>
             </div>
           </div>
 
           {showSchedule && (
-            <div ref={scheduleRef} className="result-card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div ref={scheduleRef} className="result-card card-padded-0-overflow-hidden">
               <button 
                 type="button" 
-                className={`section-toggle ${!scheduleOpen ? 'closed' : ''}`} 
+                className={`section-toggle schedule-toggle-flat ${!scheduleOpen ? 'closed' : ''}`} 
                 onClick={() => setScheduleOpen(!scheduleOpen)}
-                style={{ borderRadius: 0, borderTop: 'none', borderLeft: 'none', borderRight: 'none' }}
               >
                 <span>Estimated Payment Schedule</span>
                 <span>{scheduleOpen ? '−' : '+'}</span>
@@ -1507,10 +1502,10 @@ const Calculator = () => {
                           <Fragment key={yearData.year}>
                             <tr 
                               onClick={() => toggleYear(yearData.year)} 
-                              style={{ cursor: 'pointer', fontWeight: 'bold', background: 'rgba(255,255,255,0.6)' }}
+                              className="schedule-year-row"
                             >
-                              <td style={{ textAlign: 'left', paddingLeft: '1rem' }}>
-                                <span style={{ display: 'inline-block', width: '1.5rem' }}>{expandedYears.includes(yearData.year) ? '−' : '+'}</span>
+                              <td className="schedule-cell-year">
+                                <span className="schedule-prefix-icon">{expandedYears.includes(yearData.year) ? '−' : '+'}</span>
                                 Year {yearData.year}
                               </td>
                               <td>{formatCurrency(yearData.payment)}</td>
@@ -1519,8 +1514,8 @@ const Calculator = () => {
                               <td>{formatCurrency(yearData.balance)}</td>
                             </tr>
                             {expandedYears.includes(yearData.year) && yearData.months.map((row) => (
-                              <tr key={row.month} style={{ background: 'rgba(255,255,255,0.3)' }}>
-                                <td style={{ textAlign: 'left', paddingLeft: '3rem' }}>Month {row.month}</td>
+                              <tr key={row.month} className="schedule-month-row">
+                                <td className="schedule-cell-month">Month {row.month}</td>
                                 <td>{formatCurrency(row.payment)}</td>
                                 <td>{formatCurrency(row.principal)}</td>
                                 <td>{formatCurrency(row.interest)}</td>
@@ -1531,7 +1526,7 @@ const Calculator = () => {
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={5} style={{ textAlign: 'center', padding: '1rem' }}>
+                          <td colSpan={5} className="schedule-empty-cell">
                             No loan data available. Please check your inputs.
                           </td>
                         </tr>
@@ -1549,8 +1544,7 @@ const Calculator = () => {
               <h3>Compare</h3>
               {comparedColleges.length > 0 && (
                 <button 
-                  className="secondary-button" 
-                  style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                  className="secondary-button btn-clear-form" 
                   onClick={() => setShowComparisonModal(true)}
                 >
                   Detailed Comparison
@@ -1559,7 +1553,7 @@ const Calculator = () => {
             </div>
             
             {comparedColleges.length === 0 ? (
-              <p style={{ color: '#64748b', fontStyle: 'italic', fontSize: '0.9rem' }}>
+              <p className="text-no-results">
                 Add colleges to comparison to see them here.
               </p>
             ) : (
@@ -1570,25 +1564,15 @@ const Calculator = () => {
                   return (
                     <div 
                       key={college.id} 
-                      className="comparison-card" 
+                      className={`comparison-card ${isSelected ? 'selected-comparison' : ''}`}
                       onClick={() => handleLoadComparison(college)} 
                       title={isSelected ? "Currently viewing" : "Click to load data"}
-                      style={isSelected ? { border: '2px solid #6366f1', backgroundColor: '#eff6ff' } : undefined}
                     >
                       <div className="comparison-card-header">
                         <span className="college-name">
                           {college.name}
                           {isSelected && (
-                            <span style={{ 
-                              fontSize: '0.7rem', 
-                              marginLeft: '0.5rem', 
-                              color: '#4338ca', 
-                              backgroundColor: '#e0e7ff', 
-                              padding: '0.1rem 0.4rem', 
-                              borderRadius: '1rem',
-                              verticalAlign: 'middle',
-                              fontWeight: 'normal'
-                            }}>
+                            <span className="active-college-badge">
                               Active
                             </span>
                           )}
@@ -1626,44 +1610,28 @@ const Calculator = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <h3>4-Year Cost Breakdown</h3>
-            <div className="input-form" style={{ maxWidth: '100%', overflowX: 'auto' }}>
+            <div className="input-form modal-form-scroll">
               {['1', '2', '3', '4'].map((year) => (
                 <div key={year}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <h4 style={{ margin: 0, color: '#334155' }}>Year {year}</h4>
+                  <div className="header-flex-between">
+                    <h4 className="card-title-text">Year {year}</h4>
                     {year === '1' && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ fontSize: '0.8rem', color: '#334155' }}>Inflation %</span>
-                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <div className="flex-align-center flex-gap-8">
+                        <span className="label-inflation">Inflation %</span>
+                        <div className="wrapper-relative-flex">
                           <input
                             type="number"
                             placeholder="Inflation"
                             title="Enter annual inflation rate to apply when copying to future years"
                             value={inflationRate}
                             onChange={(e) => setInflationRate(e.target.value)}
-                            style={{
-                              width: '90px',
-                              padding: '0.25rem 0.5rem 0.25rem 0.5rem',
-                              fontSize: '0.8rem',
-                              border: '1px solid #cbd5e1',
-                              borderRadius: '0.25rem',
-                              background: 'white',
-                              color: 'black'
-                            }}
+                            className="inflation-input"
                           />
                         </div>
                         <button
                           type="button"
                           onClick={handleCopyYear1}
-                          style={{
-                            fontSize: '0.8rem',
-                            padding: '0.25rem 0.5rem',
-                            background: '#e2e8f0',
-                            border: 'none',
-                            borderRadius: '0.25rem',
-                            cursor: 'pointer',
-                            color: '#475569'
-                          }}
+                          className="copy-all-btn"
                         >
                           Copy to all ↓
                         </button>
@@ -1700,15 +1668,14 @@ const Calculator = () => {
                   </div>
                 </div>
               ))}
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <button type="button" className="calculate-button" onClick={handleTuitionDone} style={{ flex: 1 }}>
+              <div className="flex-gap-16">
+                <button type="button" className="calculate-button flex-1" onClick={handleTuitionDone}>
                   Done
                 </button>
                 <button 
                   type="button" 
-                  className="calculate-button" 
-                  onClick={handleTuitionClear}
-                  style={{ flex: 1, background: '#64748b' }}>
+                  className="calculate-button flex-1 modal-btn-clear" 
+                  onClick={handleTuitionClear}>
                   Clear All
                 </button>
               </div>
@@ -1721,24 +1688,16 @@ const Calculator = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <h3>4-Year Financial Aid Breakdown</h3>
-            <div className="input-form" style={{ maxWidth: '100%', overflowX: 'auto' }}>
+            <div className="input-form modal-form-scroll">
               {['1', '2', '3', '4'].map((year) => (
                 <div key={year}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                    <h4 style={{ margin: 0, color: '#334155' }}>Year {year}</h4>
+                  <div className="header-flex-between">
+                    <h4 className="card-title-text">Year {year}</h4>
                     {year === '1' && (
                       <button
                         type="button"
                         onClick={handleCopyFinancialAidYear1}
-                        style={{
-                          fontSize: '0.8rem',
-                          padding: '0.25rem 0.5rem',
-                          background: '#e2e8f0',
-                          border: 'none',
-                          borderRadius: '0.25rem',
-                          cursor: 'pointer',
-                          color: '#475569'
-                        }}
+                        className="copy-all-btn"
                       >
                         Copy to all ↓
                       </button>
@@ -1759,15 +1718,14 @@ const Calculator = () => {
                   </div>
                 </div>
               ))}
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button type="button" className="calculate-button" onClick={handleFinancialAidDone} style={{ flex: 1 }}>
+              <div className="flex-gap-16 flex-margin-top-16">
+                <button type="button" className="calculate-button flex-1" onClick={handleFinancialAidDone}>
                   Done
                 </button>
                 <button 
                   type="button" 
-                  className="calculate-button" 
-                  onClick={handleFinancialAidClear}
-                  style={{ flex: 1, background: '#64748b' }}>
+                  className="calculate-button flex-1 modal-btn-clear" 
+                  onClick={handleFinancialAidClear}>
                   Clear All
                 </button>
               </div>
@@ -1926,7 +1884,7 @@ const Calculator = () => {
                     401k Contribution
                     <span className="info-icon">
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                      <span className="tooltip-text" style={{ width: '220px' }}>A tax-advantaged retirement savings plan. Contributions are often deducted from your paycheck before taxes.</span>
+                      <span className="tooltip-text tooltip-220">A tax-advantaged retirement savings plan. Contributions are often deducted from your paycheck before taxes.</span>
                     </span>
                   </label>
                   <input
@@ -1941,15 +1899,14 @@ const Calculator = () => {
                   />
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button type="button" className="calculate-button" onClick={handleExpensesDone} style={{ flex: 1 }}>
+              <div className="flex-gap-16 flex-margin-top-16">
+                <button type="button" className="calculate-button flex-1" onClick={handleExpensesDone}>
                   Done
                 </button>
                 <button 
                   type="button" 
-                  className="calculate-button" 
-                  onClick={handleExpensesClear}
-                  style={{ flex: 1, background: '#64748b' }}>
+                  className="calculate-button flex-1 modal-btn-clear" 
+                  onClick={handleExpensesClear}>
                   Clear All
                 </button>
               </div>
@@ -1962,7 +1919,7 @@ const Calculator = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <h3>Estimated Monthly Tax Breakdown</h3>
-            <p style={{ color: '#64748b', marginBottom: '1rem' }}>
+            <p className="tax-gross-subtitle">
               Monthly Gross Income: <strong>{formatCurrency(getMonthlyGross())}</strong>
             </p>
             <div className="input-form">
@@ -1973,22 +1930,22 @@ const Calculator = () => {
                     <span className="info-icon">
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                       <div className="tooltip-text wide-tooltip">
-                        <div style={{ marginBottom: '0.5rem', fontWeight: 'bold', textAlign: 'center' }}>2024 Tax Brackets (Single)</div>
+                        <div className="tax-bracket-title">2024 Tax Brackets (Single)</div>
                         <table className="tooltip-table">
                           <thead>
-                            <tr><th style={{ textAlign: 'left' }}>Income Range</th><th style={{ textAlign: 'right' }}>Rate</th></tr>
+                            <tr><th className="text-left">Income Range</th><th className="text-right">Rate</th></tr>
                           </thead>
                           <tbody>
-                            <tr><td>$0 - $11,600</td><td style={{ textAlign: 'right' }}>10%</td></tr>
-                            <tr><td>$11,601 - $47,150</td><td style={{ textAlign: 'right' }}>12%</td></tr>
-                            <tr><td>$47,151 - $100,525</td><td style={{ textAlign: 'right' }}>22%</td></tr>
-                            <tr><td>$100,526 - $191,950</td><td style={{ textAlign: 'right' }}>24%</td></tr>
-                            <tr><td>$191,951 - $243,725</td><td style={{ textAlign: 'right' }}>32%</td></tr>
-                            <tr><td>$243,726 - $609,350</td><td style={{ textAlign: 'right' }}>35%</td></tr>
-                            <tr><td>$609,351+</td><td style={{ textAlign: 'right' }}>37%</td></tr>
+                            <tr><td>$0 - $11,600</td><td className="text-right">10%</td></tr>
+                            <tr><td>$11,601 - $47,150</td><td className="text-right">12%</td></tr>
+                            <tr><td>$47,151 - $100,525</td><td className="text-right">22%</td></tr>
+                            <tr><td>$100,526 - $191,950</td><td className="text-right">24%</td></tr>
+                            <tr><td>$191,951 - $243,725</td><td className="text-right">32%</td></tr>
+                            <tr><td>$243,726 - $609,350</td><td className="text-right">35%</td></tr>
+                            <tr><td>$609,351+</td><td className="text-right">37%</td></tr>
                           </tbody>
                         </table>
-                        <div style={{ marginTop: '0.5rem', fontSize: '0.65rem', fontStyle: 'italic', textAlign: 'center' }}>* Standard deduction: $14,600</div>
+                        <div className="tax-deduction-note">* Standard deduction: $14,600</div>
                       </div>
                     </span>
                   </label>
@@ -2051,52 +2008,51 @@ const Calculator = () => {
                 </div>
               </div>
               
-              <div className="result-card" style={{ marginTop: '1rem', background: '#f8fafc' }}>
-                <div className="result-item" style={{ borderBottom: 'none', paddingBottom: '0.5rem' }}>
+              <div className="result-card tax-summary-card">
+                <div className="result-item border-bottom-none padding-bottom-8">
                   <h4>Total Monthly Tax</h4>
-                  <div className="value" style={{ fontSize: '1.1rem', color: '#ef4444' }}>
+                  <div className="value text-1-1rem text-danger-val">
                     {formatCurrency(getMonthlyTax())}
                   </div>
                 </div>
-                <div style={{ padding: '0 0 1rem 0', borderBottom: '1px solid #e2e8f0', marginBottom: '1rem', fontSize: '0.85rem', color: '#64748b', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div className="tax-breakdown-list">
+                  <div className="flex-between">
                     <span>Federal ({taxRates.federal}%)</span>
                     <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.federal) || 0) / 100)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div className="flex-between">
                     <span>State ({taxRates.state}%)</span>
                     <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.state) || 0) / 100)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div className="flex-between">
                     <span>City/County ({taxRates.city}%)</span>
                     <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.city) || 0) / 100)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div className="flex-between">
                     <span>Social Security ({taxRates.socialSecurity}%)</span>
                     <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.socialSecurity) || 0) / 100)}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div className="flex-between">
                     <span>Medicare ({taxRates.medicare}%)</span>
                     <span>{formatCurrency(getMonthlyGross() * (parseFloat(taxRates.medicare) || 0) / 100)}</span>
                   </div>
                 </div>
                 <div className="result-item">
                   <h4>Est. Monthly Take-home</h4>
-                  <div className="value" style={{ fontSize: '1.1rem', color: '#10b981' }}>
+                  <div className="value text-1-1rem text-success-val">
                     {formatCurrency(getMonthlyTakeHome())}
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button className="calculate-button" onClick={() => setShowTaxModal(false)} style={{ flex: 1 }}>
+              <div className="flex-gap-16 flex-margin-top-16">
+                <button className="calculate-button flex-1" onClick={() => setShowTaxModal(false)}>
                   Done
                 </button>
                 <button 
                   type="button" 
-                  className="calculate-button" 
-                  onClick={handleTaxClear}
-                  style={{ flex: 1, background: '#64748b' }}>
+                  className="calculate-button flex-1 modal-btn-clear" 
+                  onClick={handleTaxClear}>
                   Clear All
                 </button>
               </div>
@@ -2108,12 +2064,12 @@ const Calculator = () => {
       {showComparisonModal && (
         <div className="modal-overlay">
           <div className="modal-content comparison-modal-content">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h3 style={{ margin: 0 }}>
+            <div className="header-flex-between flex-margin-bottom-16">
+              <h3 className="card-title-text margin-0">
                 College Comparison (Estimated Costs & ROI)
-                <span className="info-icon" style={{ marginLeft: '0.5rem', verticalAlign: 'middle' }}>
+                <span className="info-icon info-icon-aligned">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                  <span className="tooltip-text" style={{ width: '250px', fontWeight: 'normal', textTransform: 'none' }}>
+                  <span className="tooltip-text tooltip-250">
                     Side-by-side comparison of estimated key financial metrics for your saved colleges.
                   </span>
                 </span>
@@ -2135,7 +2091,7 @@ const Calculator = () => {
                   </tr>
                   <tr>
                     <td>4-Year Financial Aid</td>
-                    {comparedColleges.map(c => <td key={c.id} style={{ color: '#10b981' }}>{formatCurrency(calculateMetrics(c.data).fourYearAid)}</td>)}
+                    {comparedColleges.map(c => <td key={c.id} className="text-success-val">{formatCurrency(calculateMetrics(c.data).fourYearAid)}</td>)}
                   </tr>
                   <tr>
                     <td>Loan Amount</td>
@@ -2145,26 +2101,26 @@ const Calculator = () => {
                     <td>Total Interest Paid</td>
                     {comparedColleges.map(c => <td key={c.id}>{formatCurrency(calculateMetrics(c.data).totalInterest)}</td>)}
                   </tr>
-                  <tr style={{ background: '#f8fafc', fontWeight: 'bold' }}>
+                  <tr className="schedule-year-row">
                     <td>Total Cost of College</td>
                     {comparedColleges.map(c => <td key={c.id}>{formatCurrency(calculateMetrics(c.data).totalCost)}</td>)}
                   </tr>
                   <tr>
                     <td>Monthly Loan Payment</td>
-                    {comparedColleges.map(c => <td key={c.id} style={{ color: '#ef4444' }}>{formatCurrency(calculateMetrics(c.data).monthlyPayment)}</td>)}
+                    {comparedColleges.map(c => <td key={c.id} className="text-danger-val">{formatCurrency(calculateMetrics(c.data).monthlyPayment)}</td>)}
                   </tr>
                   <tr>
                     <td>Net Monthly Cash Flow</td>
                     {comparedColleges.map(c => {
                       const val = calculateMetrics(c.data).netMonthlyCashFlow;
-                      return <td key={c.id} style={{ color: val >= 0 ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>{formatCurrency(val)}</td>;
+                      return <td key={c.id} className={`text-bold-val ${val >= 0 ? 'text-success-val' : 'text-danger-val'}`}>{formatCurrency(val)}</td>;
                     })}
                   </tr>
                   <tr>
                     <td>10-Year Projected Savings</td>
                     {comparedColleges.map(c => {
                       const val = calculateMetrics(c.data).totalSavings;
-                      return <td key={c.id} style={{ color: val >= 0 ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>{formatCurrency(val)}</td>;
+                      return <td key={c.id} className={`text-bold-val ${val >= 0 ? 'text-success-val' : 'text-danger-val'}`}>{formatCurrency(val)}</td>;
                     })}
                   </tr>
                 </tbody>
@@ -2176,12 +2132,12 @@ const Calculator = () => {
 
       {showClearConfirmation && (
         <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '400px' }}>
-            <h3 style={{ marginTop: 0 }}>Clear Data?</h3>
+          <div className="modal-content modal-max-400">
+            <h3 className="margin-top-0">Clear Data?</h3>
             <p>Are you sure you want to clear all input fields? This action cannot be undone.</p>
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
-              <button className="secondary-button" style={{ flex: 1 }} onClick={() => setShowClearConfirmation(false)}>Cancel</button>
-              <button className="secondary-button" style={{ flex: 1, background: '#ef4444', color: 'white', borderColor: '#ef4444' }} onClick={confirmClearForm}>Clear All</button>
+            <div className="flex-gap-16 flex-margin-top-24">
+              <button className="secondary-button flex-1" onClick={() => setShowClearConfirmation(false)}>Cancel</button>
+              <button className="secondary-button flex-1 modal-btn-danger" onClick={confirmClearForm}>Clear All</button>
             </div>
           </div>
         </div>
@@ -2189,56 +2145,42 @@ const Calculator = () => {
 
       {showIntroSurvey && (
         <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ marginTop: 0, color: '#334155' }}>Welcome to CollegeROI!</h2>
-              <p style={{ color: '#64748b' }}>Let's get you set up with a quick comparison.</p>
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+          <div className="modal-content survey-modal-content">
+            <div className="flex-margin-bottom-24">
+              <h2 className="survey-heading">Welcome to CollegeROI!</h2>
+              <p className="text-no-results">Let's get you set up with a quick comparison.</p>
+              <div className="survey-progress-bar">
                 {[1, 2, 3].map(step => (
-                  <div key={step} style={{ 
-                    flex: 1, 
-                    height: '4px', 
-                    background: step <= surveyStep ? '#6366f1' : '#e2e8f0',
-                    borderRadius: '2px'
-                  }} />
+                  <div key={step} className={`survey-progress-step ${step <= surveyStep ? 'active' : ''}`} />
                 ))}
               </div>
             </div>
 
             {surveyStep === 1 && (
               <div>
-                <h3 style={{ fontSize: '1.1rem' }}>Select 2-5 colleges to compare</h3>
-                <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '1rem' }}>
+                <h3 className="survey-subheading">Select 2-5 colleges to compare</h3>
+                <p className="survey-description">
                   Choose from these popular colleges to see how the calculator works. You can add others later.
                 </p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto', padding: '0.5rem', border: '1px solid #e2e8f0', borderRadius: '0.5rem' }}>
+                <div className="survey-grid">
                   {colleges.slice(0, 20).map(college => {
                     const isSelected = surveySelectedColleges.find(c => c.name === college.name);
                     return (
                       <div 
                         key={college.rank}
                         onClick={() => handleSurveyToggleCollege(college)}
-                        style={{
-                          padding: '0.75rem',
-                          border: isSelected ? '2px solid #6366f1' : '1px solid #e2e8f0',
-                          borderRadius: '0.5rem',
-                          cursor: 'pointer',
-                          backgroundColor: isSelected ? '#eff6ff' : 'white',
-                          fontSize: '0.9rem',
-                          fontWeight: isSelected ? 'bold' : 'normal'
-                        }}
+                        className={`survey-college-item ${isSelected ? 'selected' : ''}`}
                       >
                         {college.name}
                       </div>
                     );
                   })}
                 </div>
-                <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+                <div className="flex-justify-end flex-margin-top-24">
                   <button 
-                    className="calculate-button" 
+                    className={`calculate-button ${surveySelectedColleges.length < 2 ? 'btn-disabled-opacity' : ''}`} 
                     disabled={surveySelectedColleges.length < 2}
                     onClick={() => setSurveyStep(2)}
-                    style={{ opacity: surveySelectedColleges.length < 2 ? 0.5 : 1 }}
                   >
                     Next ({surveySelectedColleges.length} selected)
                   </button>
@@ -2248,8 +2190,8 @@ const Calculator = () => {
 
             {surveyStep === 2 && (
               <div>
-                <h3 style={{ fontSize: '1.1rem' }}>Financial Estimates</h3>
-                <p style={{ fontSize: '0.9rem', color: '#64748b', marginBottom: '1.5rem' }}>
+                <h3 className="survey-subheading">Financial Estimates</h3>
+                <p className="survey-description flex-margin-bottom-24">
                   Enter rough estimates to apply to all selected colleges. You can refine these individually later.
                 </p>
                 <div className="input-group">
@@ -2270,7 +2212,7 @@ const Calculator = () => {
                     onChange={(e) => setSurveyFinancials(prev => ({ ...prev, contribution: e.target.value }))}
                   />
                 </div>
-                <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'space-between' }}>
+                <div className="flex-between flex-margin-top-24">
                   <button className="secondary-button" onClick={() => setSurveyStep(1)}>Back</button>
                   <button className="calculate-button" onClick={() => setSurveyStep(3)}>Next</button>
                 </div>
@@ -2279,16 +2221,16 @@ const Calculator = () => {
 
             {surveyStep === 3 && (
               <div>
-                <h3 style={{ fontSize: '1.1rem' }}>Loan Assumptions</h3>
-                <div style={{ background: '#f8fafc', padding: '1.5rem', borderRadius: '0.5rem', marginBottom: '1.5rem', border: '1px solid #e2e8f0' }}>
-                  <p style={{ margin: '0 0 1rem 0' }}>For this simulation, we will assume:</p>
-                  <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#334155' }}>
-                    <li style={{ marginBottom: '0.5rem' }}><strong>6.5%</strong> Interest Rate</li>
+                <h3 className="survey-subheading">Loan Assumptions</h3>
+                <div className="survey-assumptions-card">
+                  <p className="margin-0-0-16-0">For this simulation, we will assume:</p>
+                  <ul className="survey-assumptions-list">
+                    <li className="flex-margin-bottom-8"><strong>6.5%</strong> Interest Rate</li>
                     <li><strong>10 Year</strong> Loan Term</li>
                   </ul>
-                  <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '1rem' }}>You can adjust these settings for each college later.</p>
+                  <p className="survey-assumptions-note">You can adjust these settings for each college later.</p>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <div className="flex-between">
                   <button className="secondary-button" onClick={() => setSurveyStep(2)}>Back</button>
                   <button className="calculate-button" onClick={handleSurveyFinish}>See Comparison</button>
                 </div>
