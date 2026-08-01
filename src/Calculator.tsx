@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, type FormEvent, type KeyboardEvent, type C
 import { Link } from 'react-router-dom';
 import './Calculator.css';
 import { colleges } from './assets/colleges.ts';
+import { NetWorthChart } from './components/NetWorthChart';
+import type { ScenarioInputs } from './utils/roiProjections';
 
 interface PaymentScheduleRow {
   month: number;
@@ -97,6 +99,11 @@ const helpTopics = [
     id: 'savings',
     title: 'Projected Savings',
     content: 'The total estimated savings over 10 years, including your 401k contributions and accumulated net cash flow.'
+  },
+  {
+    id: 'workforce-baseline',
+    title: 'Straight-to-Workforce Baseline',
+    content: 'Represents the financial trajectory of entering the workforce directly after high school without attending college. It assumes a starting salary of $35,000/year (with 3% annual wage growth), zero tuition or student loan debt, and standard FICA/tax deductions with 4% 401(k) savings. This baseline provides a realistic benchmark to measure the true return on investment (ROI) of a college degree.'
   },
 ];
 
@@ -1473,6 +1480,85 @@ const Calculator = () => {
               </div>
             </div>
           </div>
+
+          {(() => {
+            const activeScenarioInputs: ScenarioInputs = {
+              collegeName: formData.collegeName || 'Selected College',
+              startingSalary: parseFloat(formData.salary) || 0,
+              tuitionTotal: calculateFourYearCost(),
+              financialAidTotal: parseFloat(formData.financialAid) || 0,
+              initialLoanBalance: calculateLoanAmount(),
+              interestRate: parseFloat(formData.loanInterest) || 6.5,
+              loanTermYears: parseInt(formData.loanTerm) || 10,
+              monthlyExpenses: (parseFloat(expensesBreakdown.rent) || 0) +
+                (parseFloat(expensesBreakdown.groceries) || 0) +
+                (parseFloat(expensesBreakdown.eatingOut) || 0) +
+                (parseFloat(expensesBreakdown.utilities) || 0) +
+                (parseFloat(expensesBreakdown.transportation) || 0) +
+                (parseFloat(expensesBreakdown.healthCare) || 0) +
+                (parseFloat(expensesBreakdown.miscellaneous) || 0),
+              monthly401k: parseFloat(expensesBreakdown.contribution401k) || 0,
+              taxRatePercent: (parseFloat(taxRates.federal) || 0) +
+                (parseFloat(taxRates.state) || 0) +
+                (parseFloat(taxRates.city) || 0) +
+                (parseFloat(taxRates.socialSecurity) || 0) +
+                (parseFloat(taxRates.medicare) || 0)
+            };
+
+            const comparedScenarioInputs = comparedColleges.map((col) => {
+              const cData = col.data || {};
+              const cForm = cData.formData || {};
+              const cTuition = cData.tuitionBreakdown || {};
+              const cExpenses = cData.expensesBreakdown || {};
+              const cTaxes = cData.taxRates || {};
+
+              const tCost = (parseFloat(cTuition.tuition1) || 0) + (parseFloat(cTuition.tuition2) || 0) + (parseFloat(cTuition.tuition3) || 0) + (parseFloat(cTuition.tuition4) || 0) +
+                            (parseFloat(cTuition.roomBoard1) || 0) + (parseFloat(cTuition.roomBoard2) || 0) + (parseFloat(cTuition.roomBoard3) || 0) + (parseFloat(cTuition.roomBoard4) || 0);
+              const tAid = (parseFloat(cTuition.financialAid1) || 0) + (parseFloat(cTuition.financialAid2) || 0) + (parseFloat(cTuition.financialAid3) || 0) + (parseFloat(cTuition.financialAid4) || 0);
+              const tFam = parseFloat(cForm.familyContribution) || 0;
+              const loanVal = Math.max(0, tCost - tAid - tFam);
+
+              const mExp = (parseFloat(cExpenses.rent) || 0) +
+                (parseFloat(cExpenses.groceries) || 0) +
+                (parseFloat(cExpenses.eatingOut) || 0) +
+                (parseFloat(cExpenses.utilities) || 0) +
+                (parseFloat(cExpenses.transportation) || 0) +
+                (parseFloat(cExpenses.healthCare) || 0) +
+                (parseFloat(cExpenses.miscellaneous) || 0);
+
+              const m401k = parseFloat(cExpenses.contribution401k) || 0;
+              const tPct = (parseFloat(cTaxes.federal) || 0) +
+                (parseFloat(cTaxes.state) || 0) +
+                (parseFloat(cTaxes.city) || 0) +
+                (parseFloat(cTaxes.socialSecurity) || 0) +
+                (parseFloat(cTaxes.medicare) || 0);
+
+              return {
+                id: col.id,
+                name: col.name,
+                inputs: {
+                  collegeName: col.name,
+                  startingSalary: parseFloat(cForm.salary) || 0,
+                  tuitionTotal: tCost,
+                  financialAidTotal: tAid,
+                  initialLoanBalance: loanVal,
+                  interestRate: parseFloat(cForm.loanInterest) || 6.5,
+                  loanTermYears: parseInt(cForm.loanTerm) || 10,
+                  monthlyExpenses: mExp,
+                  monthly401k: m401k,
+                  taxRatePercent: tPct
+                }
+              };
+            });
+
+            return (
+              <NetWorthChart
+                activeInputs={activeScenarioInputs}
+                comparedScenarios={comparedScenarioInputs}
+                formatCurrency={formatCurrency}
+              />
+            );
+          })()}
 
           {showSchedule && (
             <div ref={scheduleRef} className="result-card card-padded-0-overflow-hidden">
