@@ -1577,3 +1577,390 @@
 .pulse-ring {
   animation: pulse 2s infinite ease-in-out;
 }
+
+/* ==========================================================================
+   CashBreakdownDonut Component Styles
+   ========================================================================== */
+.cash-donut-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #0f172a;
+  border-radius: var(--radius-lg, 12px);
+  border: 1px solid #1e293b;
+  color: #f8fafc;
+  margin-top: 1rem;
+}
+
+.cash-donut-container.compact {
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.donut-alert-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.alert-item.warning {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  color: #fca5a5;
+}
+
+.alert-icon {
+  font-size: 1rem;
+}
+
+.donut-chart-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-around;
+  gap: 1.25rem;
+}
+
+.donut-svg-wrapper {
+  width: 220px;
+  height: 220px;
+  flex-shrink: 0;
+}
+
+.donut-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  flex: 1;
+  min-width: 240px;
+}
+
+.donut-legend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.donut-legend-item:hover,
+.donut-legend-item.hovered {
+  background: rgba(51, 65, 85, 0.8);
+  border-color: #6366f1;
+  transform: translateX(3px);
+}
+
+.legend-chip-title {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-label {
+  font-size: 0.8125rem;
+  color: #e2e8f0;
+  font-weight: 500;
+}
+
+.legend-chip-values {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 0.8125rem;
+}
+
+.legend-amount {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.legend-percent {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+/* ==========================================================================
+   Dark Theme Component Overrides (Consistent #1e293b Card Blue Theme)
+   ========================================================================== */
+[data-theme="dark"] .calculator-container {
+  background-color: var(--color-bg-main);
+  color: var(--color-text-body);
+}
+
+[data-theme="dark"] .navbar {
+  background: #1e293b;
+  border-bottom: 1px solid #334155;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .navbar-metrics .metric .label {
+  color: var(--color-text-muted);
+}
+
+[data-theme="dark"] .navbar-metrics .metric .value.text-dark-val {
+  color: var(--color-text-main);
+}
+
+/* Unified Card & Panel Styling (#1e293b blue) */
+[data-theme="dark"] .column,
+[data-theme="dark"] .instructions,
+[data-theme="dark"] .result-card,
+[data-theme="dark"] .comparison-card,
+[data-theme="dark"] .survey-college-card,
+[data-theme="dark"] .survey-college-grid,
+[data-theme="dark"] .net-worth-chart-container,
+[data-theme="dark"] .net-worth-chart-card,
+[data-theme="dark"] .cash-donut-container,
+[data-theme="dark"] .donut-legend-item,
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .guidance-menu,
+[data-theme="dark"] .guidance-item,
+[data-theme="dark"] .saved-scenarios-panel,
+[data-theme="dark"] .saved-scenario-card,
+[data-theme="dark"] .step-item {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Card Hover States */
+[data-theme="dark"] .comparison-card:hover,
+[data-theme="dark"] .survey-college-card:hover,
+[data-theme="dark"] .donut-legend-item:hover,
+[data-theme="dark"] .donut-legend-item.hovered,
+[data-theme="dark"] .guidance-item:hover,
+[data-theme="dark"] .saved-scenario-card:hover {
+  background: #334155 !important;
+  border-color: #818cf8 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .instructions h4,
+[data-theme="dark"] .column h3,
+[data-theme="dark"] .column h4,
+[data-theme="dark"] .modal-content h3,
+[data-theme="dark"] .modal-content h4,
+[data-theme="dark"] .result-card h4,
+[data-theme="dark"] .chart-header h3,
+[data-theme="dark"] .comparison-card .college-name {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .comparison-metric .label {
+  color: #e2e8f0 !important;
+}
+
+[data-theme="dark"] .comparison-remove {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .comparison-remove:hover {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .instructions p,
+[data-theme="dark"] .instructions ol,
+[data-theme="dark"] .chart-subtitle,
+[data-theme="dark"] label {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] input[type="text"],
+[data-theme="dark"] input[type="number"],
+[data-theme="dark"] select,
+[data-theme="dark"] .inflation-input {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
+}
+
+[data-theme="dark"] input[type="text"]::placeholder,
+[data-theme="dark"] input[type="number"]::placeholder {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .secondary-button,
+[data-theme="dark"] .toggle-button,
+[data-theme="dark"] .copy-all-btn {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .secondary-button:hover,
+[data-theme="dark"] .toggle-button:hover,
+[data-theme="dark"] .copy-all-btn:hover {
+  background-color: #334155 !important;
+  border-color: #818cf8 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .cash-flow-table,
+[data-theme="dark"] .schedule-table {
+  background: #1e293b !important;
+}
+
+[data-theme="dark"] .cash-flow-table th,
+[data-theme="dark"] .schedule-table th {
+  background: #0f172a !important;
+  color: #cbd5e1 !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .cash-flow-table td,
+[data-theme="dark"] .schedule-table td {
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+[data-theme="dark"] .schedule-year-row {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .schedule-month-row {
+  background: #0f172a !important;
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .text-dark-val {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .step-item.active {
+  background: #312e81 !important;
+  border-color: #6366f1 !important;
+  color: #ffffff !important;
+}
+
+/* Accordion / Collapsible Section Dark Theme Adjustments */
+[data-theme="dark"] .collapsible-section {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .section-toggle,
+[data-theme="dark"] .section-toggle.closed {
+  background: linear-gradient(135deg, #6366f1, #a855f7) !important;
+  color: #ffffff !important;
+  border-bottom-color: #334155 !important;
+}
+
+[data-theme="dark"] .section-toggle.closed {
+  border-bottom: none !important;
+}
+
+[data-theme="dark"] .section-toggle:hover {
+  background: linear-gradient(135deg, #4f46e5, #9333ea) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .section-content {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] select option {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .schedule-container {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .active-college-badge {
+  background-color: #312e81 !important;
+  color: #e0e7ff !important;
+}
+
+[data-theme="dark"] .net-worth-chart-container .chart-title {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .net-worth-chart-container .chart-grid line {
+  stroke: #334155 !important;
+}
+
+[data-theme="dark"] .net-worth-chart-container .chart-grid text {
+  fill: #94a3b8 !important;
+}
+
+[data-theme="dark"] .chart-legend {
+  border-top-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .legend-item span {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .chart-tooltip-panel {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .tooltip-item {
+  background: #0f172a !important;
+  border: 1px solid #334155 !important;
+}
+
+[data-theme="dark"] .tooltip-item .item-title,
+[data-theme="dark"] .tooltip-item .item-title strong {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .tooltip-item .item-metrics span {
+  color: #e2e8f0 !important;
+}
+
+[data-theme="dark"] .tooltip-item .item-metrics strong {
+  color: #ffffff !important;
+}
+
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 8px;
+  background: var(--color-bg-card);
+  color: var(--color-text-main);
+  border: 1px solid var(--color-border-medium);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--color-border-subtle);
+  border-color: var(--color-primary);
+}
