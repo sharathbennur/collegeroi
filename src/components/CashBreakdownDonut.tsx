@@ -192,15 +192,15 @@ export const CashBreakdownDonut: React.FC<CashBreakdownDonutProps> = ({
 
             {/* Donut Center Label */}
             <g className="donut-center-text" pointerEvents="none">
-              <text x={cx} y={cy - 10} textAnchor="middle" fill="#94a3b8" fontSize="11" fontWeight="600">
+              <text x={cx} y={cy - 10} textAnchor="middle" className="donut-center-label" fontSize="11" fontWeight="600">
                 {hoveredSegment ? hoveredSegment.label : 'Gross Monthly'}
               </text>
-              <text x={cx} y={cy + 12} textAnchor="middle" fill="#f8fafc" fontSize="16" fontWeight="bold">
+              <text x={cx} y={cy + 12} textAnchor="middle" className="donut-center-amount" fontSize="16" fontWeight="bold">
                 {hoveredSegment
                   ? formatCurrency(hoveredSegment.value)
                   : formatCurrency(gross)}
               </text>
-              <text x={cx} y={cy + 28} textAnchor="middle" fill="#cbd5e1" fontSize="10">
+              <text x={cx} y={cy + 28} textAnchor="middle" className="donut-center-sub" fontSize="10">
                 {hoveredSegment
                   ? `${hoveredSegment.percentage.toFixed(1)}% of Income`
                   : `${formatCurrency(allocatedTotal)} Committed`}
