@@ -6,6 +6,7 @@ import { NetWorthChart } from './components/NetWorthChart';
 import type { ScenarioInputs } from './utils/roiProjections';
 import { CashBreakdownDonut } from './components/CashBreakdownDonut';
 import { useTheme } from './context/ThemeContext';
+import { MAJOR_BENCHMARKS, LOCATION_MULTIPLIERS, SALARY_BENCHMARK_SOURCES } from './data/salaryBenchmarks';
 
 interface PaymentScheduleRow {
   month: number;
@@ -187,6 +188,30 @@ const Calculator = () => {
   const [surveyStep, setSurveyStep] = useState(1);
   const [surveySelectedColleges, setSurveySelectedColleges] = useState<typeof colleges>([]);
   const [surveyFinancials, setSurveyFinancials] = useState({ aid: '', contribution: '' });
+
+  const [selectedMajor, setSelectedMajor] = useState<string>('custom');
+  const [selectedLocation, setSelectedLocation] = useState<string>('national');
+  const [showSalarySourcesModal, setShowSalarySourcesModal] = useState<boolean>(false);
+
+  const handleMajorChange = (majorId: string) => {
+    setSelectedMajor(majorId);
+    const major = MAJOR_BENCHMARKS.find((m) => m.id === majorId);
+    const loc = LOCATION_MULTIPLIERS.find((l) => l.id === selectedLocation);
+    if (major && major.id !== 'custom') {
+      const autoSalary = Math.round(major.baseSalary * (loc?.multiplier || 1.0));
+      setFormData((prev) => ({ ...prev, salary: autoSalary.toString() }));
+    }
+  };
+
+  const handleLocationChange = (locId: string) => {
+    setSelectedLocation(locId);
+    const major = MAJOR_BENCHMARKS.find((m) => m.id === selectedMajor);
+    const loc = LOCATION_MULTIPLIERS.find((l) => l.id === locId);
+    if (major && major.id !== 'custom') {
+      const autoSalary = Math.round(major.baseSalary * (loc?.multiplier || 1.0));
+      setFormData((prev) => ({ ...prev, salary: autoSalary.toString() }));
+    }
+  };
 
   useEffect(() => {
     document.title = 'CollegeROI - Calculator';
@@ -1283,6 +1308,63 @@ const Calculator = () => {
               </button>
               {sections.payments && (
                 <div className="section-content">
+                  <div className="benchmark-preset-card">
+                    <div className="header-flex-between mb-8">
+                      <div className="flex-align-center flex-gap-6">
+                        <span className="preset-card-title">Major & Salary Benchmark Preset</span>
+                        <button
+                          type="button"
+                          className="info-icon-btn"
+                          onClick={() => setShowSalarySourcesModal(true)}
+                          title="View Salary & Cost of Living Data Sources"
+                          aria-label="View Salary Data Sources"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="preset-select-grid">
+                      <div className="input-group">
+                        <label htmlFor="majorPreset">Field of Study / Major</label>
+                        <select
+                          id="majorPreset"
+                          value={selectedMajor}
+                          onChange={(e) => handleMajorChange(e.target.value)}
+                        >
+                          {MAJOR_BENCHMARKS.map((m) => (
+                            <option key={m.id} value={m.id}>
+                              {m.name} {m.baseSalary > 0 ? `($${m.baseSalary.toLocaleString()}/yr)` : ''}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="input-group">
+                        <label htmlFor="locationPreset">Work Location / State</label>
+                        <select
+                          id="locationPreset"
+                          value={selectedLocation}
+                          onChange={(e) => handleLocationChange(e.target.value)}
+                          disabled={selectedMajor === 'custom'}
+                        >
+                          {LOCATION_MULTIPLIERS.map((loc) => (
+                            <option key={loc.id} value={loc.id}>
+                              {loc.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    {selectedMajor !== 'custom' && (
+                      <div className="preset-applied-badge">
+                        ✓ Preset Applied: <strong>${(parseFloat(formData.salary) || 0).toLocaleString()}/yr</strong> starting salary
+                      </div>
+                    )}
+                  </div>
+
                   <div className="input-group">
                     <label htmlFor="salary">Expected Annual Starting Salary ($)</label>
                     <input
@@ -2367,6 +2449,55 @@ const Calculator = () => {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {showSalarySourcesModal && (
+        <div className="modal-overlay" onClick={() => setShowSalarySourcesModal(false)}>
+          <div className="modal-content sources-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="header-flex-between border-bottom pb-12 mb-16">
+              <h3>💼 Salary & Cost-of-Living Data Sources</h3>
+              <button
+                type="button"
+                className="close-modal-btn"
+                onClick={() => setShowSalarySourcesModal(false)}
+                aria-label="Close modal"
+              >
+                ×
+              </button>
+            </div>
+            <p className="sources-description">
+              Starting salary benchmarks and regional price parity multipliers are aggregated from verified federal labor statistics and national collegiate employment research.
+            </p>
+            <div className="sources-list">
+              {SALARY_BENCHMARK_SOURCES.map((source, index) => (
+                <div key={index} className="source-item-card">
+                  <div className="source-header">
+                    <strong className="source-title">{source.title}</strong>
+                    <span className="source-org-badge">{source.organization}</span>
+                  </div>
+                  <p className="source-desc">{source.description}</p>
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="source-link"
+                  >
+                    🔗 Visit Source ({source.url})
+                  </a>
+                </div>
+              ))}
+            </div>
+            <div className="modal-actions mt-16">
+              <button
+                type="button"
+                className="secondary-button w-full"
+                onClick={() => setShowSalarySourcesModal(false)}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

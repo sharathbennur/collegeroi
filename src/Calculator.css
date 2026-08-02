@@ -204,7 +204,8 @@
   color: #1e293b;
 }
 
-.input-group input {
+.input-group input,
+.input-group select {
   padding: 0.5rem 0.75rem;
   border: 1px solid #cbd5e1;
   border-radius: 0.5rem;
@@ -216,7 +217,8 @@
   box-sizing: border-box;
 }
 
-.input-group input:focus-visible {
+.input-group input:focus-visible,
+.input-group select:focus-visible {
   outline: none;
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
@@ -2011,4 +2013,188 @@
 .theme-toggle-btn:hover {
   background: var(--color-border-subtle);
   border-color: var(--color-primary);
+}
+
+/* ==========================================================================
+   Major & Salary Benchmark Auto-Fill Component Styles
+   ========================================================================== */
+.benchmark-preset-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-lg, 12px);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.preset-card-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.info-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #e0e7ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+}
+
+.info-icon-btn:hover {
+  background: #6366f1;
+  color: #ffffff;
+  border-color: #4f46e5;
+  transform: scale(1.1);
+}
+
+.preset-select-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.preset-applied-badge {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  color: #065f46;
+}
+
+/* Sources Modal */
+.sources-modal {
+  max-width: 580px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.sources-description {
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.sources-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.source-item-card {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.875rem;
+}
+
+.source-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.375rem;
+}
+
+.source-title {
+  font-size: 0.875rem;
+  color: #0f172a;
+}
+
+.source-org-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: #4338ca;
+  background: #e0e7ff;
+  padding: 0.125rem 0.5rem;
+  border-radius: 12px;
+  width: fit-content;
+  font-weight: 500;
+}
+
+.source-desc {
+  font-size: 0.8125rem;
+  color: #475569;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.source-link {
+  font-size: 0.8125rem;
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.source-link:hover {
+  color: #1d4ed8;
+}
+
+/* Dark Theme Overrides */
+[data-theme="dark"] .benchmark-preset-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .preset-card-title {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .preset-applied-badge {
+  background: #064e3b !important;
+  border-color: #059669 !important;
+  color: #a7f3d0 !important;
+}
+
+[data-theme="dark"] .sources-description {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .source-item-card {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+[data-theme="dark"] .source-title {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .source-org-badge {
+  background: #312e81 !important;
+  color: #e0e7ff !important;
+}
+
+[data-theme="dark"] .source-desc {
+  color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .source-link {
+  color: #60a5fa !important;
+}
+
+[data-theme="dark"] .source-link:hover {
+  color: #93c5fd !important;
+}
+
+[data-theme="dark"] .info-icon-btn {
+  background: #312e81 !important;
+  color: #c7d2fe !important;
+  border-color: #4338ca !important;
+}
+
+[data-theme="dark"] .info-icon-btn:hover {
+  background: #6366f1 !important;
+  color: #ffffff !important;
+  border-color: #818cf8 !important;
 }

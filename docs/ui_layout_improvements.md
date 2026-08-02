@@ -45,11 +45,12 @@ This document outlines recommended UI, layout, and UX enhancements for the **Col
 
 ## 3. Smart Financial UX & Interactive Simulators
 
-### 💼 Major & Salary Benchmark Auto-Fill
+### 💼 Major & Salary Benchmark Auto-Fill (Completed ✅)
 - **Concept**: Provide salary presets based on selected Major (e.g., Computer Science, Nursing, Finance) and Location (State/Metro area).
 - **Key Features**:
   - Reduces friction for high school students who don't know exact post-grad starting salaries.
-  - Includes cost-of-living adjustments by state.
+  - Includes cost-of-living adjustments by state (e.g., CA 1.25x, NY 1.22x, TX 1.02x, WA 1.18x).
+  - Includes modern rounded SVG info icon button popping up verified citation links to BLS, NACE, College Scorecard, and Tax Foundation/BEA RPP statistics.
 
 ### ⚡ Loan Payoff & Extra Payment Simulator
 - **Concept**: Interactive slider inside the Payment Schedule section allowing users to test extra monthly payments (e.g., +$50/mo, +$100/mo).
